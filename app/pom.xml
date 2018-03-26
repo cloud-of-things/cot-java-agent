@@ -1,0 +1,150 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.telekom.cot</groupId>
+		<artifactId>device-agent</artifactId>
+		<version>${cot.agent.version}</version>
+	</parent>
+
+	<artifactId>device-agent-app</artifactId>
+	<name>device-agent-app</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-common</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-platform</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-credentials</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-sensor</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-operation</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+	</dependencies>
+
+	<distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<name>nexus repository by telekom</name>
+			<url>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<name>nexus repository by telekom</name>
+			<url>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<build>
+		<plugins>
+			<!-- !!! SKIPED !!! maven-deploy-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.2</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+
+			<!-- nexus-staging-maven-plugin -->
+			<!-- mvn deploy -->
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.7</version>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<serverId>nexus</serverId>
+					<nexusUrl>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/</nexusUrl>
+					<skipStaging>true</skipStaging>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<!-- mvn deploy -P snapshots -->
+		<profile>
+			<id>snapshots</id>
+			<build>
+				<plugins>
+					<!-- nexus-staging-maven-plugin -->
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.7</version>
+						<executions>
+							<execution>
+								<id>default-deploy</id>
+								<phase>deploy</phase>
+								<goals>
+									<goal>deploy</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<serverId>nexus-releases</serverId>
+							<nexusUrl>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/snapshots/</nexusUrl>
+							<skipStaging>true</skipStaging>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!-- mvn deploy -P releases -->
+		<profile>
+			<id>releases</id>
+			<build>
+				<plugins>
+					<!-- nexus-staging-maven-plugin -->
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.7</version>
+						<executions>
+							<execution>
+								<id>default-deploy</id>
+								<phase>deploy</phase>
+								<goals>
+									<goal>deploy</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<serverId>nexus-releases</serverId>
+							<nexusUrl>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/releases/</nexusUrl>
+							<skipStaging>true</skipStaging>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

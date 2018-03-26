@@ -1,0 +1,54 @@
+agent:
+  proxy:
+    host: 10.175.249.97
+    port: 8080
+  bootstrap:
+    username: devicebootstrap
+    password: Fhdt1bb1f
+    tenant: management
+  inventory:
+    deviceName: testNovaAgent0815
+    deviceType: novaAgent
+    deviceExternalId: testNovaAgent0815
+  platform:
+    hostname: ram.m2m.telekom.com
+  registration:
+      # should not be changeable
+      deviceId: testNovaAgent0815
+      # seconds
+      credentialsDelay: 15
+      credentialsRetry: 25000
+  sensor:
+    # seconds
+    sendMeasurementsSchedulerPeriod: 5
+    raspbian:
+      cputemperature:
+        getMeasurementsSchedulerPeriod: 1 # seconds
+        alarms:
+          -
+            text: Warning alarm
+            type: TemperatureAlarmWarning
+            minValue: 50
+            maxValue: 80
+            severity: WARNING # CRITICAL, MAJOR, MINOR, WARNING
+          -
+            text: Critical alarm
+            type: TemperatureAlarmCritical
+            minValue: 80
+            maxValue: 200
+            severity: CRITICAL
+    demo:
+      temperature:
+        getMeasurementsSchedulerPeriod: 1 # seconds
+        alarms:
+          -
+            text: Warning alarm
+            type: TemperatureAlarmWarning
+            minValue: 10
+            maxValue: 15
+            severity: WARNING # CRITICAL, MAJOR, MINOR, WARNING
+  operation:
+    # unit is in seconds
+    interval: 10
+    # the count of requested operations
+    resultSize: 1

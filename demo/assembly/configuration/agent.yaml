@@ -1,0 +1,109 @@
+agent:
+  common:
+    # common shutdown timeout in milliseconds 
+    shutdownTimeout: 2000
+  
+  # properties
+  properties:
+    # c8y_Configuration (represents by this agent.yaml) and
+    # c8y_SoftwareList (represents by this deployment)
+    # are default implementations of the agent and
+    # not changeable by system properties
+    system:
+      # CoT c8y_Hardware properties
+      hardware:
+        model:  "RaspPi BCM2708"
+        revision: 000e
+        serialNumber: 0000000017b769d5
+      # CoT c8y_Firmware properties
+      firmware:
+        name: "raspberrypi-bootloader"
+        version: "1.20130207-1"
+        url: "http://loadnewversion.de/"
+      # CoT c8y_Mobile properties
+      mobile:
+        imei: "861145013087177"
+        cellId: "4904-A496"
+        iccid: "89490200000876620613"
+  # configuration parameters of agent services
+  services:
+    # inventory service configuration
+    inventoryService:
+      deviceType: c8y_Linux
+      deviceName: testNovaAgent0860  
+      # set true to enable measurements 
+      isDevice: true
+      # set true to enable operations 
+      isAgent: true
+
+    # platform service configuration
+    platformService:
+      # proxy settings
+      proxyHost: '-'
+      proxyPort: '-'
+      # CoT Host name
+      hostName: null
+      # regsitration key
+      externalIdConfig:
+        # template to generate the external id value
+        # possible values:
+        #     NO_TEMPLATE          : no template, 'value' is used
+        #     HARDWARE_SERIAL      : uses the hardware serial
+        #     TYPE_HARDWARE_SERIAL : uses a combination of external id type and hw serial number
+        #                               e.g. novaAgent-0000000017b769d5
+        valueTemplate: NO_TEMPLATE
+        type: null
+        value: null
+
+    # device credentials service configuration
+    deviceCredentialsService:
+      # template to generate the device id (used for device registration at CoT)
+      # possible values:
+      #     EXTERNAL_ID_VALUE : uses the value of the external id
+      #     HARDWARE_SERIAL   : uses the hardware serial
+      deviceIdTemplate: EXTERNAL_ID_VALUE
+      # unit is in seconds
+      interval: 10
+      # bootstrap credentials
+      bootstrapCredentials:
+        username: null
+        password: null
+        tenant: null
+
+
+    # sensor service configuration
+    sensorService:
+      sendInterval: 5 # seconds
+    
+    # operation service configuration
+    operationService:
+      # time in seconds
+      interval: 10
+      # the count of requested operations
+      resultSize: 1
+      # shutdown timeout in milliseconds for stopping operation service and its operation handlers
+      shutdownTimeout: 5000
+      handlersShutdownTimeout: 500 
+
+  operations:
+    testOperation:
+      # in seconds
+      delay: 10
+    softwareUpdate:
+      # possible values: MD5, SHA1, SHA256
+      checksumAlgorithm: "MD5"
+
+  demo:
+    sensors:
+      # the simulated temperature sensor
+      demoTemperatureSensor:
+        valueFilePath: "temperatures.txt"
+        recordReadingsInterval: 1 # seconds
+        repeatMeasurements: true
+        alarmConfigurations:
+          -
+            text: "Warning alarm: Temperature reached a value of <value>"
+            type: TemperatureAlarmWarning
+            minValue: 25
+            maxValue: 50
+            severity: WARNING # CRITICAL, MAJOR, MINOR, WARNING

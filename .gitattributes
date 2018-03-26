@@ -1,0 +1,2 @@
+cot-java-agent text eol=lf
+/operation/src/main/resources/scripts/debian/update.sh text eol=lf

@@ -1,0 +1,187 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.telekom.cot</groupId>
+		<artifactId>device-agent</artifactId>
+		<version>${cot.agent.version}</version>
+	</parent>
+
+	<artifactId>device-agent-demo</artifactId>
+	<name>device-agent-demo</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-app</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+	</dependencies>
+
+	<distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<name>nexus repository by telekom</name>
+			<url>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<name>nexus repository by telekom</name>
+			<url>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<build>
+		<plugins>
+			<!-- maven-jar-plugin to create an executable jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>com.telekom.cot.device.agent.app.AppMain</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Specification-Version>${cot.agent.version.demo}</Specification-Version>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- maven-assembly-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>make-bin-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<tarLongFileMode>posix</tarLongFileMode>
+							<descriptors>
+								<descriptor>assembly/bin-assembly.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-checksum-zip</id>
+						<phase>install</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<tarLongFileMode>posix</tarLongFileMode>
+							<descriptors>
+								<descriptor>assembly/deb-assembly.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>convert-line-endings</id>
+						<phase>package</phase>
+						<configuration>
+							<tasks>
+								<fixcrlf file="${project.basedir}/assembly/scripts/cot-java-agent" eol="unix"/>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- .deb-package plugin -->
+			<plugin>
+				<artifactId>jdeb</artifactId>
+				<groupId>org.vafer</groupId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jdeb</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<dataSet>
+						<data>
+							<src>
+								${project.basedir}/target/device-agent-demo-${cot.agent.version}-bin.tar.gz
+							</src>
+							<type>archive</type>
+							<mapper>
+								<type>perm</type>
+								<strip>1</strip>
+								<prefix>/opt/cot-java-agent/</prefix>
+								<user>cotagent</user>
+								<group>nogroup</group>
+								<!--<filemode>600</filemode> -->
+							</mapper>
+						</data>
+						<data>
+							<src>${project.basedir}/assembly/scripts/cot-java-agent</src>
+							<type>file</type>
+							<mapper>
+								<type>perm</type>
+								<strip>1</strip>
+								<prefix>/etc/init.d/</prefix>
+								<user>root</user>
+								<group>root</group>
+								<filemode>755</filemode>
+							</mapper>
+						</data>
+					</dataSet>
+					<controlDir>${project.basedir}/assembly/deb/control</controlDir>
+				</configuration>
+			</plugin>
+
+			<!-- create md5, sha-1 and sha-256 checksum files -->
+			<plugin>
+				<groupId>net.nicoulaj.maven.plugins</groupId>
+				<artifactId>checksum-maven-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>files</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<fileSets>
+						<fileSet>
+							<directory>${project.basedir}/target/</directory>
+							<includes>
+								<include>*.deb</include>
+							</includes>
+						</fileSet>
+					</fileSets>
+					<algorithms>
+						<algorithm>MD5</algorithm>
+						<algorithm>SHA-1</algorithm>
+						<algorithm>SHA-256</algorithm>
+					</algorithms>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

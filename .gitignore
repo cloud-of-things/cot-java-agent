@@ -1,0 +1,10 @@
+.settings/
+.project
+.classpath
+target/
+.idea/
+*.iml
+device-credentials.yaml
+agent.pid
+/assembly/
+*.log

@@ -1,0 +1,19 @@
+<assembly>
+	<id>deb</id>
+
+	<formats>
+		<format>zip</format>
+	</formats>
+
+	<includeBaseDirectory>false</includeBaseDirectory>
+
+	<fileSets>
+		<fileSet>
+			<directory>${project.basedir}/target/</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>*.deb*</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>

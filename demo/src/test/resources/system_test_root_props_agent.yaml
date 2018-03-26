@@ -1,0 +1,6 @@
+agent:
+  properties:
+    system:
+      hardware: null
+      firmware: null
+      mobile: null

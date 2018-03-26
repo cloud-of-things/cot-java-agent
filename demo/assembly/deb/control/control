@@ -1,0 +1,10 @@
+Package: cot-java-agent
+Version: [[version]]
+Section: misc
+Priority: optional
+Architecture: all
+Depends: jdk (>= 1.8)
+Maintainer: Team Nova <nova@telekom.de>
+Description: Telekom CoT Java Reference Agent
+Distribution: development
+Depends: default-jre | java8-runtime, sudo

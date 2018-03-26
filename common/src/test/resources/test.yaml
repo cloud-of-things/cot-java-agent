@@ -1,0 +1,20 @@
+agent:
+  proxy:
+    host: 10.175.249.97
+    port: 8080
+  bootstrap:
+    username: devicebootstrap
+    password: Fhdt1bb1f
+    tenant: management
+  inventory:
+    deviceName: testNovaAgent0818
+    deviceType: novaAgent
+    deviceExternalId: testNovaAgent0818
+  platform:
+    hostname: ram.m2m.telekom.com
+  registration:
+      # should not be changeable
+      deviceId: testNovaAgent0818
+      # seconds
+      credentialsDelay: 15
+      credentialsRetry: 25000

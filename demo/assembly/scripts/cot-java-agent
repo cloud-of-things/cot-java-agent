@@ -1,0 +1,106 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          cot-java-agent
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 6
+# Short-Description: Starts CoT Java Agent
+### END INIT INFO
+
+# cot agent init script
+if [ "$(id -u)" != "0" ]; then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+# get agent path, agent dir and agent file name
+AGENT_DIR=/opt/cot-java-agent/
+AGENT_PATH=`find $AGENT_DIR -name device-agent-demo-*.jar | head -n 1`
+AGENT_FILE=`basename $AGENT_PATH`
+
+USER="cotagent" #run agent as user cotagent
+PID_FILE="$AGENT_DIR/agent.pid"
+JAVA_COMMAND="java -Dlogback.configurationFile=./logback.xml -jar $AGENT_FILE ./agent.yaml"
+
+getPID() {
+	PID=`ps -aux | grep "java" | grep "$AGENT_FILE" | sed -E -e 's/[[:blank:]]+/\t/g' | cut -f2 | head -n 1`
+}
+
+startAgent() {
+	# is cot-agent already running?
+	getPID
+	if [ "$PID" != "" ]; then
+		echo "Failure: Can't start CoT Java Agent, is already running (PID=$PID)!"
+		return
+	fi
+
+	echo "Starting up CoT Java Agent..."
+
+	# get current user
+	CURRENT_USER=$(whoami)
+
+	# change into agent dir and start agent with given user
+	cd $AGENT_DIR
+    /sbin/runuser $USER -s /bin/bash -c  "$JAVA_COMMAND" &> /dev/null &
+
+	# get PID and check
+	getPID
+	if [ "$PID" == "" ]; then
+		echo "Failure: Can't start CoT Java Agent"
+	else
+		echo "Started CoT Java Agent successfully (PID=$PID)"
+	fi
+}
+
+stopAgent() {
+	# get and check PID
+	getPID
+	if [ "$PID" == "" ]; then
+		echo "CoT Java Agent is not running"
+		return
+	fi
+
+	echo "Stop running CoT Java Agent (PID=$PID)..."
+	kill $PID
+
+	declare -i RETRIES=15
+	while [ $RETRIES -gt 0 ]; do
+		if [ "$PID" == "" ]; then
+			echo "Done."
+			return
+		fi
+
+		sleep 1
+		getPID
+		RETRIES=$((RETRIES-1))
+	done
+
+	echo "Can't stop agent, terminate it."
+	kill -9 $PID
+}
+
+case "$1" in
+    start)
+       	startAgent
+    ;;
+
+    stop)
+		stopAgent
+    ;;
+
+    status)
+    	# get and check PID
+        getPID
+        if [ "$PID" == "" ]; then
+            echo "CoT Java Agent is not running"
+        else
+			echo "CoT Java Agent is running (PID=$PID)"
+		fi
+    ;;
+
+	*)
+		echo "Usage: /etc/init.d/cot-java-agent start|stop|status"
+
+esac
+

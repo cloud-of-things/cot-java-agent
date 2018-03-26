@@ -1,0 +1,28 @@
+<configuration scan="true" scanPeriod="30 seconds" >
+
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} cot-java-agent [%thread] %-5level %logger{36} %method:%line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>cot-java-agent.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>cot-java-agent-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{dd.MM.yyyy HH:mm:ss.SSS} cot-java-agent [%thread] %-5level %logger{36} %method:%line - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--  ALL | DEBUG | INFO | WARN | ERROR | FATAL | OFF -->
+    <root level="debug">
+<!--        <appender-ref ref="STDOUT"/> -->
+	    <appender-ref ref="ROLLING"/>
+    </root>
+</configuration>

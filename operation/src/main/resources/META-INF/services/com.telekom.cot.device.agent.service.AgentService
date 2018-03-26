@@ -1,0 +1,2 @@
+com.telekom.cot.device.agent.operation.OperationServiceImpl
+com.telekom.cot.device.agent.operation.handler.AgentOperationsHandlerService

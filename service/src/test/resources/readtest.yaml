@@ -1,0 +1,14 @@
+agent:
+  platform:
+    textProperty: "hallo"
+    intProperty: 1
+    doubleProperty: 1.23
+    booleanProperty: false
+  
+  testService1:
+    property1: "value11"
+    property2: 12
+  
+  testService2:
+    property1: "value21"
+    property2: 22

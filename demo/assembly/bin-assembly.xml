@@ -1,0 +1,64 @@
+<assembly>
+	<id>bin</id>
+
+	<!-- Specifies that our binary distribution is a zip and tar.gz package -->
+	<formats>
+		<format>zip</format>
+		<format>tar.gz</format>
+	</formats>
+
+	<dependencySets>
+		<!-- add dependencies to the lib directory, exclude device-agent-demo artifact -->
+		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
+			<outputDirectory>lib</outputDirectory>
+			<unpack>false</unpack>
+		</dependencySet>
+	</dependencySets>
+
+	<fileSets>
+		<!-- add device-agent-demo artifact to root directory -->
+		<fileSet>
+			<directory>${project.build.directory}</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>*.jar</include>
+			</includes>
+		</fileSet>
+		
+		<!-- add configuration files (agent.yaml, logback.xml) -->
+		<fileSet>
+			<directory>assembly/configuration</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
+
+		<!-- add startup scripts to the root directory -->
+		<fileSet>
+			<directory>assembly/scripts</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>startup.bat</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>assembly/scripts</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>startup.sh</include>
+			</includes>
+			<lineEnding>unix</lineEnding>
+		</fileSet>
+
+		<!-- add sample data to the root directory -->
+		<fileSet>
+			<directory>assembly/sampledata</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>

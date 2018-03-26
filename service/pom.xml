@@ -1,0 +1,36 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.telekom.cot</groupId>
+		<artifactId>device-agent</artifactId>
+		<version>${cot.agent.version}</version>
+	</parent>
+
+	<artifactId>device-agent-service</artifactId>
+	<name>device-agent-service</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-common</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+	</dependencies>
+
+	<distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<name>nexus repository by telekom</name>
+			<url>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<name>nexus repository by telekom</name>
+			<url>http://infinity-wbench.psst.t-online.corp/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>

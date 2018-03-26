@@ -1,0 +1,10 @@
+#!/bin/bash
+adduser --group --system --no-create-home --shell "/bin/false" --disabled-login cotagent
+chown -R cotagent:cotagent /opt/cot-java-agent/
+chmod +x /opt/cot-java-agent/startup.sh
+
+echo "cotagent ALL= EXEC: NOPASSWD: /sbin/reboot" >> /etc/sudoers
+echo "cotagent ALL= EXEC: NOPASSWD: /usr/bin/dpkg -i device-agent*deb" >> /etc/sudoers
+echo "cotagent ALL= EXEC: NOPASSWD: /etc/init.d/cot-java-agent" >> /etc/sudoers
+
+update-rc.d cot-java-agent defaults

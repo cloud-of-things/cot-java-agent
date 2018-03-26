@@ -1,0 +1,15 @@
+agent:
+  properties:
+    system:
+      hardware:
+        model:  null
+        revision: null
+        serialNumber: null
+      firmware:
+        name: null
+        version: null
+        url: null
+      mobile:
+        imei: null
+        cellId: null
+        iccid: null
