@@ -147,8 +147,8 @@ Extending the agent in order to support customer specific devices requires the f
 The customer specific devices implementations will then be automatically *discovered* by the agent and will be used to collect/send measurements, events and alarms, or to handle specific operations depending on the implementation.
 
 Two extension examples are included in the project:
-* [demo](https://infinity-wbench.psst.t-online.corp/gitlab/Nova/cot-java-agent/tree/develop/demo)
-* [raspbian](https://infinity-wbench.psst.t-online.corp/gitlab/Nova/cot-java-agent/tree/develop/raspbian)
+* [demo](demo)
+* [raspbian](raspbian)
 
 ### Sensors
 
@@ -159,11 +159,11 @@ Supporting new sensors requires creating a class implementing the interface `Sen
 * Check for alarms
 * Send the measurement to the `SensorService` so that it will be sent to the CoT in another thread
 
-When a sensor value is measured, alarms can be checked and sent to the `SensorService` in case the measured value falls in the defined interval. See the method `checkAlarms()` in [TemperatureSensor](https://infinity-wbench.psst.t-online.corp/gitlab/Nova/cot-java-agent/blob/develop/sensor/src/main/java/com/telekom/cot/device/agent/sensor/deviceservices/TemperatureSensor.java). Alarms sent to `SensorService` are then immediately sent to the CoT.
+When a sensor value is measured, alarms can be checked and sent to the `SensorService` in case the measured value falls in the defined interval. See the method `checkAlarms()` in [TemperatureSensor](sensor/src/main/java/com/telekom/cot/device/agent/sensor/deviceservices/TemperatureSensor.java). Alarms sent to `SensorService` are then immediately sent to the CoT.
 
 Two sensor examples are included in the project:
-* demo: [DemoTemperatureSensor.java](https://infinity-wbench.psst.t-online.corp/gitlab/Nova/cot-java-agent/blob/develop/demo/src/main/java/com/telekom/cot/device/agent/demo/sensor/DemoTemperatureSensor.java)
-* raspbian: [CpuTemperatureSensor.java](https://infinity-wbench.psst.t-online.corp/gitlab/Nova/cot-java-agent/blob/develop/raspbian/src/main/java/com/telekom/cot/device/agent/raspbian/sensor/CpuTemperatureSensor.java)
+* demo: [DemoTemperatureSensor.java](demo/src/main/java/com/telekom/cot/device/agent/demo/sensor/DemoTemperatureSensor.java)
+* raspbian: [CpuTemperatureSensor.java](raspbian/src/main/java/com/telekom/cot/device/agent/raspbian/sensor/CpuTemperatureSensor.java)
 
 ### Operations
 
@@ -178,4 +178,4 @@ This interface contains following methods:
 `execute` is the method that executes a pending operation. It must return its status after the execution is finished (SUCCESSFUL, FAILED).
 
 An operation handler is included in the project:
-* raspbian: [com.telekom.cot.device.agent.raspian.operation](https://infinity-wbench.psst.t-online.corp/gitlab/Nova/cot-java-agent/tree/develop/raspbian/src/main/java/com/telekom/cot/device/agent/raspbian/operation)
+* raspbian: [com.telekom.cot.device.agent.raspian.operation](raspbian/src/main/java/com/telekom/cot/device/agent/raspbian/operation)

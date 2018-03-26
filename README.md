@@ -16,7 +16,7 @@ The Java agent contains following functionalities:
 * Update configuration
 * Update software
 
-_Current version is: 0.10.0_
+_Current version is: 0.11.0_
 
 ## Prerequisites
 
@@ -32,13 +32,13 @@ java version "1.8.0_101"
 A binary package is available for the Raspberry Pi.
 
 ```
-$ wget http://<path_to_package>/device-agent-raspbian_0.10.0~SNAPSHOT_all.deb
-$ sudo dpkg -i device-agent-raspbian_0.10.0~SNAPSHOT_all.deb
+$ wget http://<path_to_package>/device-agent-raspbian_0.11.0~SNAPSHOT_all.deb
+$ sudo dpkg -i device-agent-raspbian_0.11.0~SNAPSHOT_all.deb
 ```
 
 ## Configuration
 
-The agent configuration is defined in the [agent.yaml](https://infinity-wbench.psst.t-online.corp/gitlab/Nova/cot-java-agent/blob/develop/app/agent.yaml) file.
+The agent configuration is defined in the [agent.yaml](app/agent.yaml) file.
 
 The agent.yaml file contains sections for the main components:
 
@@ -237,7 +237,7 @@ Accept the registration
 
 ## Development
 
-* Developers can find further technical information in the [DEVELOPER.md](https://infinity-wbench.psst.t-online.corp/gitlab/Nova/cot-java-agent/blob/develop/DEVELOPER.md) file.
+* Developers can find further technical information in the [DEVELOPER.md](DEVELOPER.md) file.
 * The [cumulocity website](https://www.cumulocity.com/guides/) also provides valuable information to understand the CoT technical concepts.
 
 ## Release Notes
