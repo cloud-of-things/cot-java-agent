@@ -16,7 +16,7 @@ The Java agent contains following functionalities:
 * Update configuration
 * Update software
 
-_Current version is: 0.11.0_
+_Current version is: 0.10.1_
 
 ## Prerequisites
 
@@ -32,8 +32,8 @@ java version "1.8.0_101"
 A binary package is available for the Raspberry Pi.
 
 ```
-$ wget http://<path_to_package>/device-agent-raspbian_0.11.0~SNAPSHOT_all.deb
-$ sudo dpkg -i device-agent-raspbian_0.11.0~SNAPSHOT_all.deb
+$ wget http://<path_to_package>/device-agent-raspbian_0.10.1~SNAPSHOT_all.deb
+$ sudo dpkg -i device-agent-raspbian_0.10.1~SNAPSHOT_all.deb
 ```
 
 ## Configuration
@@ -243,6 +243,10 @@ Accept the registration
 ## Release Notes
 
 Short information about what has changed between releases.
+
+### Release 0.10.1
+
+* Fix CPU temperature bug
 
 ### Release 0.10.0
 
