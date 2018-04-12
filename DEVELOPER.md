@@ -11,10 +11,10 @@ package com.telekom.cot.device.agent.app;
 * This package contains the logic called when the app is started. It manages the *startup* phase and then starts the *cycle* phase by calling the other components described below.
   * The startup phase is responsible for connecting the device to CoT and updating the device data in the inventory.
 
-  ![Startup phase](https://www.cumulocity.com/guides/rest/startupphase.png)
+  ![Startup phase](doc/startupphase.jpg)
   * The cycle phase is responsible for sending measurements, events, alarms, executing operations.
   
-  ![Cycle phase](https://www.cumulocity.com/guides/rest/cyclephase.png)
+  ![Cycle phase](doc/cyclephase.jpg)
 * This package also contains the logic called when the app is stopped (a shutdown hook permits to stop all services gracefully).
 
 ### Common
