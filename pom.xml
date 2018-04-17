@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<cot.agent.version>0.10.0</cot.agent.version>
+		<cot.agent.version>0.10.1</cot.agent.version>
 		<cot.agent.version.demo>${cot.agent.version}</cot.agent.version.demo>
 		<cot.sdk.version>1.0.2</cot.sdk.version>
 	</properties>
