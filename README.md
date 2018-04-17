@@ -29,12 +29,13 @@ java version "1.8.0_101"
 
 ## Installing
 
-A binary package is available for the Raspberry Pi.
+Prebuild binary packages for the Raspberry Pi (OS: Raspbian Stretch) are available at https://github.com/cloud-of-things/cot-java-rest-agent/releases.
 
 ```
-$ wget http://<path_to_package>/device-agent-raspbian_0.10.1~SNAPSHOT_all.deb
-$ sudo dpkg -i device-agent-raspbian_0.10.1~SNAPSHOT_all.deb
+$ wget https://github.com/cloud-of-things/cot-java-rest-agent/releases/download/v0.10.1/device-agent-raspbian_0.10.1_all.deb
+$ sudo dpkg -i device-agent-raspbian_0.10.1_all.deb
 ```
+After installation, the agent software can be found at directory `/opt/cot-java-agent/` on the Raspberry Pi.
 
 ## Configuration
 
