@@ -37,8 +37,8 @@ Software packages are available at https://github.com/cloud-of-things/cot-java-r
 To install the agent on a Raspberry Pi, start the terminal and install the pre-built debian package.
 
 ```
-$ wget https://github.com/cloud-of-things/cot-java-rest-agent/releases/download/v0.10.1/device-agent-raspbian_0.10.1_all.deb
-$ sudo dpkg -i device-agent-raspbian_0.10.1_all.deb
+$ wget https://github.com/cloud-of-things/cot-java-rest-agent/releases/download/v0.10.2/device-agent-raspbian_0.10.2_all.deb
+$ sudo dpkg -i device-agent-raspbian_0.10.2_all.deb
 ```
 After installation, the agent software can be found at directory `/opt/cot-java-agent/` on the Raspberry Pi.  
 
