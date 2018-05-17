@@ -44,6 +44,7 @@ package com.telekom.cot.device.agent.credentials;
 This service is responsible for:
 * Checking if local device credentials are available (in a file called `device-credentials.yaml`).
 * Requesting device credentials using the bootstrap credentials. If a device agent has its first contact with the CoT and no local device credentials are provided, this service requests device credentials. The device can then be accepted in the CoT and once the device credentials are retrieved, the agent is registered in the CoT. The device credentials are saved locally in a file called `device-credentials.yaml`.
+**Note:** Do no delete/overwrite the bootstrap credentials if set!
 
 Dependencies:
 * PlatformService
@@ -126,15 +127,24 @@ Two implementations of `SystemService` are included in the project:
 Before building please ensure you have at least JDK 1.8 and Maven 3. You can check this by running:
 
 ```
-mvn -version
-javac -version
+$ mvn -version
+  maven version "3.x.x"
+
+$ javac -version
+  java version "1.8.x_xxx"
 ```
 
 To build the agent simply run:
 
 ```
-mvn clean install
+$ mvn clean install
 ```
+
+Note: For further information according Maven see Apache Maven Project, e.g. 
+* [Maven in 5 minutes](https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html)
+* [Introduction to the POM](https://maven.apache.org/guides/introduction/introduction-to-the-pom.html)
+* [Introduction to the Build Lifecycle](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)
+* [Introduction to Repositories](https://maven.apache.org/guides/introduction/introduction-to-repositories.html)
 
 ## Extending
 
@@ -179,3 +189,4 @@ This interface contains following methods:
 
 An operation handler is included in the project:
 * raspbian: [com.telekom.cot.device.agent.raspian.operation](raspbian/src/main/java/com/telekom/cot/device/agent/raspbian/operation)
+

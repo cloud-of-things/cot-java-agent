@@ -70,6 +70,11 @@ public class AppBootstrapTest {
 		when(mockAgentServiceManager.getService(EventService.class)).thenReturn(mockEventService);
 		when(mockAgentServiceManager.getService(DeviceCredentialsService.class))
 				.thenReturn(mockDeviceCredentialsService);
+
+		CommonConfiguration cc = new CommonConfiguration();
+		cc.setConnectivityTimeout(0);
+		cc.setShutdownTimeout(1);
+		when(mockConfigurationManager.getConfiguration(CommonConfiguration.class)).thenReturn(cc);
 	}
 
 	// Credentials are NOT available, device is NOT registered

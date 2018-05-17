@@ -9,10 +9,21 @@ import com.telekom.cot.device.agent.service.configuration.ConfigurationPath;
 @ConfigurationPath("agent.common")
 public class CommonConfiguration implements Configuration {
 
-	@NotNull @Positive
+    @NotNull
+    private Integer connectivityTimeout;
+
+    @NotNull @Positive
 	private Integer shutdownTimeout;
 
-	public Integer getShutdownTimeout() {
+    public Integer getConnectivityTimeout() {
+        return connectivityTimeout;
+    }
+    
+    public void setConnectivityTimeout(Integer connectivityTimeout) {
+        this.connectivityTimeout = connectivityTimeout;
+    }
+
+    public Integer getShutdownTimeout() {
 		return shutdownTimeout;
 	}
 

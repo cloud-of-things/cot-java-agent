@@ -1,5 +1,8 @@
+# Note: Made changes will come into effect only after a restart of the agent 
 agent:
   common:
+    # timeout for connectivity check on startup (-1 = no timeout, 0 = no connectivity check, >0 = timeout in minutes)
+    connectivityTimeout: -1
     # common shutdown timeout in milliseconds 
     shutdownTimeout: 2000
   
@@ -12,25 +15,25 @@ agent:
     system:
       # CoT c8y_Hardware properties
       hardware:
-        model:  "RaspPi BCM2708"
-        revision: 000e
-        serialNumber: 0000000017b769d5
+        model:  "RaspPi BCM1234"
+        revision: 1234
+        serialNumber: 0000000012345678
       # CoT c8y_Firmware properties
       firmware:
-        name: "raspberrypi-bootloader"
-        version: "1.20130207-1"
+        name: "Linux raspberrypi"
+        version: "4.5.67-v8+"
         url: "http://loadnewversion.de/"
       # CoT c8y_Mobile properties
       mobile:
-        imei: "861145013087177"
-        cellId: "4904-A496"
-        iccid: "89490200000876620613"
+        imei: "861145012345678"
+        cellId: "4567-A456"
+        iccid: "89490200001234567890"
   # configuration parameters of agent services
   services:
     # inventory service configuration
     inventoryService:
       deviceType: c8y_Linux
-      deviceName: testNovaAgent0860  
+      deviceName: CoTJavaAgent
       # set true to enable measurements 
       isDevice: true
       # set true to enable operations 
@@ -39,20 +42,20 @@ agent:
     # platform service configuration
     platformService:
       # proxy settings
-      proxyHost: '-'
-      proxyPort: '-'
+      proxyHost: null # by default
+      proxyPort: null # by default
       # CoT Host name
-      hostName: null
-      # regsitration key
+      hostName: ram.m2m.telekom.com # by default
+      # registration key
       externalIdConfig:
         # template to generate the external id value
         # possible values:
         #     NO_TEMPLATE          : no template, 'value' is used
         #     HARDWARE_SERIAL      : uses the hardware serial
         #     TYPE_HARDWARE_SERIAL : uses a combination of external id type and hw serial number
-        #                               e.g. novaAgent-0000000017b769d5
-        valueTemplate: NO_TEMPLATE
-        type: null
+        #                               e.g. CoTJavaAgent-0000000012345678
+        valueTemplate: HARDWARE_SERIAL
+        type: CoTJavaAgent
         value: null
 
     # device credentials service configuration
@@ -66,14 +69,14 @@ agent:
       interval: 10
       # bootstrap credentials
       bootstrapCredentials:
-        username: null
-        password: null
-        tenant: null
+        username: devicebootstrap
+        password: Fhdt1bb1f
+        tenant: management
 
 
     # sensor service configuration
     sensorService:
-      sendInterval: 5 # seconds
+      sendInterval: 5 # interval in seconds at which measurements are sent to the CoT
     
     # operation service configuration
     operationService:
@@ -98,7 +101,7 @@ agent:
       # the simulated temperature sensor
       demoTemperatureSensor:
         valueFilePath: "temperatures.txt"
-        recordReadingsInterval: 1 # seconds
+        recordReadingsInterval: 1 # interval in seconds at which values are read
         repeatMeasurements: true
         alarmConfigurations:
           -

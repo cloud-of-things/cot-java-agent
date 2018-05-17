@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<cot.agent.version>0.10.1</cot.agent.version>
+		<cot.agent.version>0.10.2</cot.agent.version>
 		<cot.agent.version.demo>${cot.agent.version}</cot.agent.version.demo>
 		<cot.sdk.version>1.0.2</cot.sdk.version>
 	</properties>
@@ -109,6 +109,22 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<version>1.0.1</version>
+				<configuration>
+				</configuration>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>

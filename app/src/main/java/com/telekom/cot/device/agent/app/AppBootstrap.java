@@ -47,6 +47,9 @@ public class AppBootstrap {
 	public void start() throws AppMainException {
 		LOGGER.info("start");
 
+		// check platform connectivity
+		ConnectivityChecker.checkPlatformConnectivity(configurationManager);
+		
 		// add shutdown hook
         try {
             Runtime.getRuntime().addShutdownHook(new AppShutdown(agentServiceManager, configurationManager));

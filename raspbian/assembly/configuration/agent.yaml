@@ -1,26 +1,29 @@
+# Note: Made changes will come into effect only after a restart of the agent                                                                         
 agent:
   common:
+    # timeout for connectivity check on startup (-1 = no timeout, 0 = no connectivity check, >0 = timeout in minutes)
+    connectivityTimeout: -1
     # common shutdown timeout in milliseconds 
     shutdownTimeout: 2000
   
   # properties
   properties:
-    # c8y_Configuration (represents by this agent.yaml) and
-    # c8y_SoftwareList (represents by this deployment)
+    # c8y_Configuration (represented by this agent.yaml) and
+    # c8y_SoftwareList (represented by this deployment)
     # are default implementations of the agent and
     # not changeable by system properties
     system:
       # CoT c8y_Mobile properties
       mobile:
-        imei: "861145013087177"
-        cellId: "4904-A496"
-        iccid: "89490200000876620613"
+        imei: "861145012345678"
+        cellId: "4567-A456"
+        iccid: "89490200001234567890"
   # configuration parameters of agent services
   services:
     # inventory service configuration
     inventoryService:
       deviceType: c8y_Linux
-      deviceName: testNovaAgent0860  
+      deviceName: CoTJavaAgent
       # set true to enable measurements 
       isDevice: true
       # set true to enable operations 
@@ -29,20 +32,20 @@ agent:
     # platform service configuration
     platformService:
       # proxy settings
-      proxyHost: 10.175.249.97
-      proxyPort: 8080
+      proxyHost: null # by default
+      proxyPort: null # by default
       # CoT Host name
-      hostName: ram.m2m.telekom.com
-      # regsitration key
+      hostName: ram.m2m.telekom.com # by default
+      # registration key
       externalIdConfig:
         # template to generate the external id value
         # possible values:
         #     NO_TEMPLATE          : no template, 'value' is used
         #     HARDWARE_SERIAL      : uses the hardware serial
         #     TYPE_HARDWARE_SERIAL : uses a combination of external id type and hw serial number
-        #                               e.g. novaAgent-0000000017b769d5
-        valueTemplate: TYPE_HARDWARE_SERIAL
-        type: novaAgent
+        #                               e.g. CoTJavaAgent-0000000012345678
+        valueTemplate: HARDWARE_SERIAL
+        type: CoTJavaAgent
         value: null
 
     # device credentials service configuration
@@ -63,7 +66,7 @@ agent:
 
     # sensor service configuration
     sensorService:
-      sendInterval: 5 # seconds
+      sendInterval: 5 # interval in seconds at which measurements are sent to the CoT
     
     # operation service configuration
     operationService:
@@ -86,17 +89,17 @@ agent:
   raspbian:
     sensors:
       cpuTemperatureSensor:
-        recordReadingsInterval: 1 # seconds
+        recordReadingsInterval: 1 # interval in seconds at which values are read
         alarmConfigurations:
           -
-            text: Warning alarm
+            text: "Warning alarm: Temperature reached a value of <value>"
             type: TemperatureAlarmWarning
-            minValue: 40
-            maxValue: 60
+            minValue: 60
+            maxValue: 70
             severity: WARNING # CRITICAL, MAJOR, MINOR, WARNING
           -
-            text: Critical alarm
+            text: "Critical alarm: Temperature reached a value of <value>"
             type: TemperatureAlarmCritical
-            minValue: 60
+            minValue: 70
             maxValue: 100
-            severity: CRITICAL
+            severity: CRITICAL # CRITICAL, MAJOR, MINOR, WARNING
