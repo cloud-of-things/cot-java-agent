@@ -4,18 +4,13 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationPath;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 
-@ConfigurationPath("agent.services.platformService")
-public class PlatformServiceConfiguration implements Configuration {
+public abstract class PlatformServiceConfiguration implements Configuration {
 
 	@NotNull @NotEmpty
 	private String hostName;
 	
-	private String proxyHost;
-	private String proxyPort;
-
 	@NotNull @Valid
 	private ExternalIdConfig externalIdConfig;
 
@@ -27,34 +22,12 @@ public class PlatformServiceConfiguration implements Configuration {
 		this.hostName = hostName;
 	}
 
-	public String getProxyHost() {
-		return proxyHost;
-	}
-
-	public void setProxyHost(String proxyHost) {
-		this.proxyHost = proxyHost;
-	}
-
-	public String getProxyPort() {
-		return proxyPort;
-	}
-
-	public void setProxyPort(String proxyPort) {
-		this.proxyPort = proxyPort;
-	}
-
 	public ExternalIdConfig getExternalIdConfig() {
 		return externalIdConfig;
 	}
 
 	public void setExternalIdConfig(ExternalIdConfig externalId) {
 		this.externalIdConfig = externalId;
-	}
-
-	@Override
-	public String toString() {
-		return PlatformServiceConfiguration.class.getSimpleName() + " [hostName=" + hostName + ", proxyHost=" + proxyHost
-				+ ", proxyPort=" + proxyPort + ", externalId=" + externalIdConfig + "]";
 	}
 
 	public static class ExternalIdConfig {
@@ -94,6 +67,5 @@ public class PlatformServiceConfiguration implements Configuration {
 		public String toString() {
 			return ExternalIdConfig.class.getSimpleName() + " [type=" + type + ", value=" + value + "]";
 		}
-
 	}
 }

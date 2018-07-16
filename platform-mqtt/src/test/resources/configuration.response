@@ -1,0 +1,66 @@
+87,2,novaMqttTemplates04
+512,2,19790905,EXECUTING,"---
+agent:
+ common:
+   connectivityTimeout: 0
+   shutdownTimeout: 2001
+ properties:
+   system:
+     hardware:
+       model: testModel
+       revision: testRevision
+       serialNumber: 123
+     firmware:
+       name: testName
+       version: testversion
+       url: testUrl
+     mobile:
+       imei: someImei
+       cellId: C2
+       iccid: novaIccid-francois11
+ services:
+   inventoryService:
+     deviceType: c8y_Linux
+     deviceName: CoTJavaAgent
+     isDevice: true
+     isAgent: true
+   platformService:
+     hostName: nb-iot.ram.m2m.telekom.com
+     externalIdConfig:
+       valueTemplate: NO_TEMPLATE
+       type: c8y_Serial
+       value: novaIccid-francois11
+     mqttConfiguration:
+       port: 8883
+       xId: novaMqttTemplates04
+       timeout: 10
+   deviceCredentialsService:
+     deviceIdTemplate: EXTERNAL_ID_VALUE
+     interval: 10
+     bootstrapCredentials:
+       username: devicebootstrap
+       password: Fhdt1bb1f
+       tenant: management
+   sensorService:
+     sendInterval: 5
+   operationService:
+     interval: 10
+     shutdownTimeout: 5000
+     handlersShutdownTimeout: 500
+ operations:
+   testOperation:
+     delay: 10
+   softwareUpdate:
+     checksumAlgorithm: MD5
+ demo:
+   sensors:
+     demoTemperatureSensor:
+       valueFilePath: temperatures.txt
+       recordReadingsInterval: 1
+       repeatMeasurements: true
+       alarmConfigurations:
+       - text: "Warning alarm : Temperature reached a value of <value>"
+         type: TemperatureAlarmWarning
+         minValue: 25
+         maxValue: 50
+         severity: WARNING"

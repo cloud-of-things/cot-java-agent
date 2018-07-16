@@ -1,0 +1,41 @@
+10,604,POST,/identity/globalIds/%%/externalIds,application/vnd.com.nsn.cumulocity.externalId+json,application/vnd.com.nsn.cumulocity.externalId+json,%%,STRING STRING,"{ ""type"" : ""c8y_Serial"", ""externalId"" : ""%%"" }"
+10,605,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED STRING STRING STRING STRING STRING STRING STRING STRING STRING STRING,"{""c8y_Hardware"":{""model"":""&&"",""revision"":""&&"",""serialNumber"":""&&""},""c8y_SoftwareList"":[{""name"":""Application"",""version"":""&&"",""url"":""none""},{""name"":""Bootloader"",""version"":""&&"",""url"":""none""},{""name"":""Bluetooth"",""version"":""&&"",""url"":""none""},{""name"":""Modem"",""version"":""&&"",""url"":""none""}],""c8y_Mobile"":{""imei"":""&&"",""iccid"":""&&"",""imsi"":""&&""}}"
+10,606,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED,"{""c8y_SupportedOperations"": [ ""c8y_Configuration"",""c8y_SendConfiguration"",""c8y_DownloadConfigFile"",""c8y_UploadConfigFile"",""c8y_Software"",""c8y_SoftwareList"",""c8y_Firmware"",""c8y_FirmwareList"",""c8y_SystemCommand"",""c8y_Command"",""c8y_Restart"" ] }"
+10,500,GET,/devicecontrol/operations/%%,,application/vnd.com.nsn.cumulocity.operation+json,%%,UNSIGNED,
+10,600,GET,/identity/externalIds/c8y_Serial/%%,,application/vnd.com.nsn.cumulocity.externalId+json,%%,STRING,
+10,602,POST,/inventory/managedObjects,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,STRING STRING,"{""name"":""&&"",""type"":""&&"",""c8y_IsDevice"":{},""com_cumulocity_model_Agent"":{}}"
+10,400,POST,/event/events,application/vnd.com.nsn.cumulocity.event+json,application/vnd.com.nsn.cumulocity.event+json,&&,STRING STRING STRING STRING STRING STRING,"{ ""&&"":""&&"", ""source"": { ""id"":""&&"" },""time"":""&&"",""type"":""&&"", ""text"": ""&&"" }"
+10,100,POST,/measurement/measurements,application/vnd.com.nsn.cumulocity.measurement+json,application/vnd.com.nsn.cumulocity.measurement+json,&&,STRING STRING NUMBER STRING STRING STRING STRING,"{ ""&&"":{""&&"": { ""value"": &&, ""unit"": ""&&"" } }, ""time"": ""&&"",""source"": { ""id"": ""&&"" }, ""type"": ""&&"" }"
+10,450,POST,/alarm/alarms,application/vnd.com.nsn.cumulocity.alarm+json,application/vnd.com.nsn.cumulocity.alarm+json,&&,STRING STRING STRING STRING STRING STRING,"{ ""type"": ""&&"", ""time"": ""&&"", ""text"": ""&&"", ""status"": ""&&"", ""severity"": ""&&"", ""source"": { ""id"": ""&&"" }, ""c8y_AgentAlarm"":""{}"" }"
+10,200,GET,/devicecontrol/operations?deviceId=%%&nocache=true&status=%%&fragmentType=%%,,application/vnd.com.nsn.cumulocity.operationCollection+json,%%,UNSIGNED STRING STRING,
+10,300,PUT,/devicecontrol/operations/%%,application/vnd.com.nsn.cumulocity.operation+json,application/vnd.com.nsn.cumulocity.operation+json,%%,UNSIGNED STRING STRING STRING,"{ ""status"": ""%%"" ,""c8y_OperationUpdate"": {""%%"":""%%""} }"
+10,607,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED STRING,"{""c8y_SupportedOperations"": [ ""&&"" ],""c8y_InventoryUpdate"":{""c8y_SupportedOperations"":""{}""} }"
+10,610,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED STRING STRING STRING,"{""c8y_Hardware"":{""model"":""&&"",""revision"":""&&"",""serialNumber"":""&&""},""c8y_InventoryUpdate"":{""c8y_Hardware"":""{}""}}"
+10,611,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED,"{""c8y_Hardware"":{},""c8y_InventoryUpdate"":{""c8y_Hardware"":""{}""}}"
+10,613,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED STRING STRING STRING,"{""c8y_SoftwareList"":[{""name"":""&&"",""version"":""&&"",""url"":""&&""}],""c8y_InventoryUpdate"":{""c8y_SoftwareList"":""{}""}}"
+10,614,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED,"{""c8y_SoftwareList"":{},""c8y_InventoryUpdate"":{""c8y_SoftwareList"":""{}""}}"
+10,616,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED STRING STRING STRING,"{""c8y_Mobile"":{""imei"":""&&"",""cellId"":""&&"",""iccid"":""&&""},""c8y_InventoryUpdate"":{""c8y_Mobile"":""{}""}}"
+10,617,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED,"{""c8y_Mobile"":{},""c8y_InventoryUpdate"":{""c8y_Mobile"":""{}""}}"
+10,619,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED STRING STRING STRING,"{""c8y_Firmware"":{""name"":""&&"",""version"":""&&"",""url"":""&&""},""c8y_InventoryUpdate"":{""c8y_Firmware"":""{}""}}"
+10,620,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED,"{""c8y_Firmware"":{},""c8y_InventoryUpdate"":{""c8y_Firmware"":""{}""}}"
+10,622,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED STRING,"{""c8y_Configuration"" : {""config"": ""&&""},""c8y_InventoryUpdate"":{""c8y_Configuration"":""{}""}}"
+10,623,PUT,/inventory/managedObjects/&&,application/vnd.com.nsn.cumulocity.managedObject+json,application/vnd.com.nsn.cumulocity.managedObject+json,&&,UNSIGNED,"{""c8y_Configuration"" : {},""c8y_InventoryUpdate"":{""c8y_Configuration"":""{}""}}"
+11,601,,"$.externalId","$.externalId","$.managedObject.id"
+11,603,,"$.c8y_IsDevice","$.id"
+11,401,,@.c8y_EventStartup,$.id,@.c8y_EventStartup
+11,101,,@.c8y_Temperature,$.id
+11,451,,@.c8y_AgentAlarm,$.id
+11,210,$.operations,"$.c8y_Restart","$.id","$.status"
+11,211,$.operations,"$.c8y_TestOperation","$.id","$.status"
+11,625,,"$.c8y_OperationUpdate.SUCCESSFUL","$.id"
+11,626,,"$.c8y_OperationUpdate.FAILED","$.id"
+11,627,,"$.c8y_OperationUpdate.EXECUTING","$.id"
+11,608,,"$.c8y_InventoryUpdate.c8y_SupportedOperations","$.id"
+11,612,,"$.c8y_InventoryUpdate.c8y_Hardware","$.id"
+11,615,,"$.c8y_InventoryUpdate.c8y_SoftwareList","$.id"
+11,618,,"$.c8y_InventoryUpdate.c8y_Mobile","$.id"
+11,621,,"$.c8y_InventoryUpdate.c8y_Firmware","$.id"
+11,624,,"$.c8y_InventoryUpdate.c8y_Configuration","$.id"
+11,510,,@.c8y_Restart,@.id,$.status
+11,511,,@.c8y_TestOperation,@.id,$.status,@.c8y_TestOperation.givenStatus
+11,512,,@.c8y_Configuration,@.id,$.status,@.c8y_Configuration.config

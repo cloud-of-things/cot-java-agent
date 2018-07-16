@@ -1,6 +1,6 @@
 package com.telekom.cot.device.agent.operation.softwareupdate;
 
-import static com.telekom.cot.device.agent.common.util.AssertionUtil.*;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.createExceptionAndLog;
 
 import java.io.InputStream;
 import java.nio.file.Files;

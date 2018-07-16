@@ -1,0 +1,3 @@
+xid=15,${X-ID}
+template=mqtt.request.templates
+template=mqtt.response.templates

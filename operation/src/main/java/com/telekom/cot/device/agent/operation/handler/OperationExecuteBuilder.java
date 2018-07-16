@@ -1,6 +1,6 @@
 package com.telekom.cot.device.agent.operation.handler;
 
-import static com.telekom.cot.device.agent.common.util.AssertionUtil.*;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.assertNotNull;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -10,10 +10,10 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
+import com.telekom.cot.device.agent.platform.objects.Operation;
 
 public class OperationExecuteBuilder {
 

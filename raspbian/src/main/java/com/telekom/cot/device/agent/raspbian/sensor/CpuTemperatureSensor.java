@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.SensorDeviceServiceException;
-import com.telekom.cot.device.agent.sensor.SensorMeasurement;
+import com.telekom.cot.device.agent.common.injection.Inject;
+import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
 import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
 import com.telekom.cot.device.agent.sensor.deviceservices.TemperatureSensor;
 
@@ -20,6 +21,7 @@ public class CpuTemperatureSensor extends TemperatureSensor {
 	/** The logger. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(CpuTemperatureSensor.class);
 
+	@Inject
 	private CpuTemperatureSensorConfiguration configuration;
 	private Runtime currentRuntime;
 	
@@ -28,8 +30,7 @@ public class CpuTemperatureSensor extends TemperatureSensor {
 	 */
 	@Override
 	public void start() throws AbstractAgentException {
-		// get configuration and current java runtime
-		configuration = getConfigurationManager().getConfiguration(CpuTemperatureSensorConfiguration.class);
+		// get current java runtime
 		currentRuntime = Runtime.getRuntime();
 
 		super.start();

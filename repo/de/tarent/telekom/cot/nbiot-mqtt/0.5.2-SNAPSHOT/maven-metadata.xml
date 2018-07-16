@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>de.tarent.telekom.cot</groupId>
+  <artifactId>nbiot-mqtt</artifactId>
+  <version>0.5.2-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20180425.112300</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <lastUpdated>20180425112300</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>0.5.2-20180425.112300-1</value>
+        <updated>20180425112300</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>0.5.2-20180425.112300-1</value>
+        <updated>20180425112300</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>

@@ -1,39 +1,32 @@
 package com.telekom.cot.device.agent.credentials;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import com.telekom.cot.device.agent.service.configuration.AgentCredentials;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationPath;
+import com.telekom.cot.device.agent.common.annotations.ConfigurationPath;
+import com.telekom.cot.device.agent.common.configuration.AgentCredentials;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 
 @ConfigurationPath("agent.services.deviceCredentialsService")
 public class DeviceCredentialsServiceConfiguration implements Configuration{
 
 	public enum DeviceIdTemplates { EXTERNAL_ID_VALUE, HARDWARE_SERIAL }
 	
-    private int interval;
-    
 	@NotNull
-	private AgentCredentials bootstrapCredentials;
-	
+    private Integer interval;
+    @NotNull @Valid
+    private AgentCredentials bootstrapCredentials;
+    
 	@NotNull
 	private DeviceIdTemplates deviceIdTemplate;
 
-    public int getInterval() {
+    public Integer getInterval() {
         return interval;
     }
 
-    public void setInterval(int interval) {
+    public void setInterval(Integer interval) {
         this.interval = interval;
     }
-
-	public AgentCredentials getBootstrapCredentials() {
-		return bootstrapCredentials;
-	}
-
-	public void setBootstrapCredentials(AgentCredentials bootstrapCredentials) {
-		this.bootstrapCredentials = bootstrapCredentials;
-	}
 
 	public DeviceIdTemplates getDeviceIdTemplate() {
 		return deviceIdTemplate;
@@ -42,4 +35,13 @@ public class DeviceCredentialsServiceConfiguration implements Configuration{
 	public void setDeviceIdTemplate(DeviceIdTemplates deviceIdTemplate) {
 		this.deviceIdTemplate = deviceIdTemplate;
 	}
+	
+    public AgentCredentials getBootstrapCredentials() {
+        bootstrapCredentials.setBootstrappingMode(true);
+        return bootstrapCredentials;
+    }
+
+    public void setBootstrapCredentials(AgentCredentials bootstrapCredentials) {
+        this.bootstrapCredentials = bootstrapCredentials;
+    }	
 }

@@ -1,5 +1,6 @@
 package com.telekom.cot.device.agent.operation.handler;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 
 public class TestOperationExecute extends AbstractOperationExecute<TestOperationConfig> {
 
@@ -17,13 +18,19 @@ public class TestOperationExecute extends AbstractOperationExecute<TestOperation
 
     public static final String PARAM_DELAY = "param.delay.in.seconds";
 
-    public enum GivenStatus {
-        GIVEN_SUCCESSFUL, GIVEN_FAILED_BY_STATUS, GIVEN_FAILED_BY_EXCEPTION
+    public static enum GivenStatus {
+        GIVEN_SUCCESSFUL, GIVEN_FAILED_BY_STATUS, GIVEN_FAILED_BY_EXCEPTION;
+        public static GivenStatus find(String status) {
+            return Arrays.asList(GivenStatus.values()).stream()
+                            .filter(value -> String.valueOf(value).equals(status))
+                            .findFirst()
+                            .orElse(null);
+        }
     }
 
     @Override
     public OperationStatus perform() throws AbstractAgentException {
-        LOGGER.info("perform c8y_TestOperation {}", Objects.nonNull(getOperation()) ? getOperation().getAttributes() : "null");
+    	LOGGER.info("perform c8y_TestOperation {}", Objects.nonNull(getOperation()) ? getOperation().getProperties() : "null");
 
         // delay execution
         int delayInSeconds = getConfiguration().getDelay();

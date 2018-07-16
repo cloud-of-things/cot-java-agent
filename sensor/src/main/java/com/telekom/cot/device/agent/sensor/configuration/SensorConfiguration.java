@@ -3,7 +3,7 @@ package com.telekom.cot.device.agent.sensor.configuration;
 import java.util.List;
 
 import com.telekom.cot.device.agent.common.AlarmSeverity;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 
 public abstract class SensorConfiguration implements Configuration {
 

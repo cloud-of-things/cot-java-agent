@@ -3,7 +3,7 @@ package com.telekom.cot.device.agent.operation.handler;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-import com.telekom.cot.device.agent.service.configuration.Configuration;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 
 public class TestOperationConfig implements Configuration {
 

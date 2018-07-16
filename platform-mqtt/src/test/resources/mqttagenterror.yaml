@@ -1,0 +1,14 @@
+agent:
+  services:
+    platformService:
+      hostName: ram.m2m.telekom.com
+      externalIdConfig:
+        valueTemplate: NO_TEMPLATE
+        type: test
+        value: test
+      restConfiguration:
+        proxyHost: 10.175.249.97
+        proxyPort: 8080
+      mqttConfiguration:
+        port: 8883
+        xId: null

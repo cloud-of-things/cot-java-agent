@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,15 +19,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.telekom.cot.device.agent.alarm.AlarmService;
 import com.telekom.cot.device.agent.common.AlarmSeverity;
 import com.telekom.cot.device.agent.common.exc.SensorDeviceServiceException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
-import com.telekom.cot.device.agent.sensor.AlarmService;
-import com.telekom.cot.device.agent.sensor.SensorMeasurement;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
+import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
 import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
-import com.telekom.cot.device.agent.service.AgentServiceProvider;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationManager;
 
 public class CpuTemperatureSensorTest {
 
@@ -39,11 +38,7 @@ public class CpuTemperatureSensorTest {
 	private CpuTemperatureSensorConfiguration configuration;
 
 	@Mock
-	private AgentServiceProvider mockServiceProvider;
-	@Mock
-	private ConfigurationManager mockConfigurationManager;
-	@Mock
-	private AlarmService mockSensorAlarmService;
+	private AlarmService mockAlarmService;
 	@Mock
 	private SensorService mockSensorService;
 	@Mock
@@ -68,20 +63,12 @@ public class CpuTemperatureSensorTest {
 		configuration.setRecordReadingsInterval(1);
 		configuration.setAlarmConfigurations(alarmConfigurations);
 
-		// inject configuration, mocked AgentServiceProvider and mocked runtime
+		// inject configuration, mocked services and mocked runtime
 		// (overwritten by start())
 		InjectionUtil.inject(cpuTemperatureSensor, configuration);
-		InjectionUtil.inject(cpuTemperatureSensor, mockServiceProvider);
-		InjectionUtil.inject(cpuTemperatureSensor, mockConfigurationManager);
+		InjectionUtil.inject(cpuTemperatureSensor, mockAlarmService);
+        InjectionUtil.inject(cpuTemperatureSensor, mockSensorService);
 		InjectionUtil.inject(cpuTemperatureSensor, mockRuntime);
-
-		// return values of AgentServiceProvider
-		when(mockServiceProvider.getService(AlarmService.class)).thenReturn(mockSensorAlarmService);
-		when(mockServiceProvider.getService(SensorService.class)).thenReturn(mockSensorService);
-
-		// behavior of mocked ConfigurationManager
-		when(mockConfigurationManager.getConfiguration(CpuTemperatureSensorConfiguration.class))
-				.thenReturn(configuration);
 
 		// mock runtime, process and input stream
 		when(mockRuntime.exec(CpuTemperatureSensor.READ_CPU_TEMPERATURE_COMMAND)).thenReturn(mockProcess);
@@ -93,13 +80,31 @@ public class CpuTemperatureSensorTest {
 	}
 
 	/**
-	 * test method start
+	 * test method start, no AlarmService given
 	 */
-	@Test
-	public void testStart() throws Exception {
+	@Test(expected=SensorDeviceServiceException.class)
+	public void testStartNoAlarmService() throws Exception {
+        InjectionUtil.inject(cpuTemperatureSensor, "alarmService", null);
 		cpuTemperatureSensor.start();
-		cpuTemperatureSensor.stop();
 	}
+
+    /**
+     * test method start, no SensorService given
+     */
+    @Test(expected=SensorDeviceServiceException.class)
+    public void testStartNoSensorService() throws Exception {
+        InjectionUtil.inject(cpuTemperatureSensor, "sensorService", null);
+        cpuTemperatureSensor.start();
+    }
+
+    /**
+     * test method start
+     */
+    @Test
+    public void testStart() throws Exception {
+        cpuTemperatureSensor.start();
+        cpuTemperatureSensor.stop();
+    }
 
 	/**
 	 * test method stop
@@ -203,7 +208,7 @@ public class CpuTemperatureSensorTest {
 	public void testComplete() throws Exception {
 		cpuTemperatureSensor.start();
 		InjectionUtil.inject(cpuTemperatureSensor, mockRuntime);
-		Thread.sleep(5500);
+		TimeUnit.MILLISECONDS.sleep(5500);
 		cpuTemperatureSensor.stop();
 
 		// assert that 6 measurements have been pushed to SensorService
@@ -220,6 +225,6 @@ public class CpuTemperatureSensorTest {
 		assertEquals(20.3f, capturedMeasurements.get(5).getValue(), 0.0001f);
 
 		// verify that an alarm has been created for the measurement with value=28.5
-		verify(mockSensorAlarmService, times(1)).createAlarm(ALARM_TYPE, ALARM_SEVERITY, ALARM_TEXT, null, null, null);
+		verify(mockAlarmService, times(1)).createAlarm(ALARM_TYPE, ALARM_SEVERITY, ALARM_TEXT, null);
 	}
 }

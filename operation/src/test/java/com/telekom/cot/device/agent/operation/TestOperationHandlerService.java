@@ -4,9 +4,9 @@ import java.util.Objects;
 
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.operation.handler.OperationsHandlerService;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.service.AbstractAgentService;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
 
 public class TestOperationHandlerService extends AbstractAgentService implements OperationsHandlerService {
 
@@ -20,7 +20,7 @@ public class TestOperationHandlerService extends AbstractAgentService implements
 	private ExceptionLocation location;
 
 	private boolean started = false;
-	private boolean stoped = false;
+	private boolean stopped = false;
 	private boolean executed = false;
 	private Operation operation;
 
@@ -66,7 +66,7 @@ public class TestOperationHandlerService extends AbstractAgentService implements
 
 	@Override
 	public void stop() throws AbstractAgentException {
-		stoped = true;
+		stopped = true;
 		if (ExceptionLocation.STOP == location) {
 			if (Objects.nonNull(runtimeException)) {
 				throw runtimeException;
@@ -99,8 +99,8 @@ public class TestOperationHandlerService extends AbstractAgentService implements
 		return started;
 	}
 
-	public boolean isStoped() {
-		return stoped;
+	public boolean isStopped() {
+		return stopped;
 	}
 
 	public boolean isExecuted() {

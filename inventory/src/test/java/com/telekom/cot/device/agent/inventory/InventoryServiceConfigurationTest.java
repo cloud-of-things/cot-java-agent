@@ -1,9 +1,10 @@
 package com.telekom.cot.device.agent.inventory;
 
-import com.telekom.cot.device.agent.common.util.ValidationUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.telekom.cot.device.agent.common.util.ValidationUtil;
 
 public class InventoryServiceConfigurationTest {
 

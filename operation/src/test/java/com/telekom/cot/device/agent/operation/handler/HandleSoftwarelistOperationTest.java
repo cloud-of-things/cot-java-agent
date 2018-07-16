@@ -19,32 +19,32 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.telekom.cot.device.agent.common.ChecksumAlgorithm;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.operation.softwareupdate.SoftwareUpdateConfig;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 
 public class HandleSoftwarelistOperationTest {
 
     private PlatformService mockPlatformService;
     private AgentOperationsHandlerService service;
-    private Runtime mockRuntime;
     private Path currentRelativePath;
 
     @Before
     public void setUp() throws IOException {
         // mock
         mockPlatformService = Mockito.mock(PlatformService.class);
-        mockRuntime = Mockito.mock(Runtime.class);
+
         // conf
         AgentOperationsHandlerConfiguration config = new AgentOperationsHandlerConfiguration();
         SoftwareUpdateConfig softwareUpdateConfig = new SoftwareUpdateConfig();
         softwareUpdateConfig.setChecksumAlgorithm(ChecksumAlgorithm.MD5);
         currentRelativePath = Files.createTempDirectory("zip_test");
         config.setSoftwareUpdate(softwareUpdateConfig);
+
         // service
-        service = new TestAgentOperationsHandlerService(mockPlatformService);
+        service = new AgentOperationsHandlerService();
         InjectionUtil.inject((AgentOperationsHandlerService) service, config);
     }
 
@@ -68,13 +68,13 @@ public class HandleSoftwarelistOperationTest {
         softwareList.add(software);
 
         Operation operation = new Operation();
-        operation.set("c8y_SoftwareList", softwareList);
+        operation.setProperty("c8y_SoftwareList", softwareList);
         
         // when execute handleSoftwarelistOperation
         String agentYamlDir = Paths.get(HandleSoftwarelistOperationTest.class.getResource("/agent.yaml").toURI())
                         .toString();
         agentYamlDir = agentYamlDir.substring(0, agentYamlDir.lastIndexOf("agent.yaml") - 1);
-        OperationStatus status = service.handleSoftwarelistOperation(operation, agentYamlDir, mockRuntime);
+        OperationStatus status = service.handleSoftwarelistOperation(operation);
         // then the status is EXECUTING
         Assert.assertThat(status, Matchers.equalTo(OperationStatus.EXECUTING));
         // check copy of agent.yaml file

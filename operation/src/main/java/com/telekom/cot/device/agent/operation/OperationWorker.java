@@ -14,9 +14,8 @@ import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.OperationServiceException;
 import com.telekom.cot.device.agent.operation.handler.OperationsHandlerService;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationCollection;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 
 /**
  * Handles the operation requests and executions.
@@ -41,20 +40,17 @@ public class OperationWorker {
 	private Map<String, OperationsHandlerService> operationHandlerServicesMap;
 	/** The sleep interval. */
 	private int interval;
-	/** The request size of operations. */
-	private int operationSize;
 
 	private boolean started = false;
 	private boolean stopped = false;
 
 	/** The protected constructor. */
 	protected OperationWorker(PlatformService platformService, List<OperationsHandlerService> operationHandlerServices,
-			int sleepInterval, int operationSize) {
+			int sleepInterval) {
 		LOGGER.info("create operation worker");
 		this.platformService = platformService;
 		this.operationHandlerServicesMap = toMap(operationHandlerServices);
 		this.interval = sleepInterval;
-		this.operationSize = operationSize;
 	}
 
 	/**
@@ -96,7 +92,7 @@ public class OperationWorker {
 			// Wait until the worker thread finishes handling its current pending operations
 			try {
 				worker.join();
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
 				throw new OperationServiceException("The worker thread has been interrupted");
 			}
 			LOGGER.info("operation worker is stopped");
@@ -118,18 +114,23 @@ public class OperationWorker {
 	private void getOperationsAndHandle() {
 		LOGGER.info("running operation worker");
 		while (running.get()) {
-		    // get and check pending operations, sleep when no pending operations
-		    OperationCollection pendingOperations = getPendingOperations(operationSize);
-		    if (Objects.isNull(pendingOperations)) {
-		        LOGGER.debug("no pending operations found");
+		    // get and check next pending operation, sleep when no pending operation found
+		    Operation operation = getNextPendingOperation();
+		    if (Objects.isNull(operation)) {
+		        LOGGER.debug("no pending operation found");
 		        sleep();
 		        continue;
 		    }
 
-		    try {
-		        handleOperations(pendingOperations);
+		    // handle operation
+            try {
+                OperationStatus status = handleOperation(operation);
+                LOGGER.debug("handled operation, status is {}", status);
+	            
+    	        // update new status
+    	        updateOperationStatus(operation, status);
 			} catch (Exception exception) {
-				LOGGER.error("Can't handle operations", exception);
+				LOGGER.error("can't handle operations", exception);
 			}
 		}
 
@@ -150,53 +151,48 @@ public class OperationWorker {
 	}
 
 	/**
-	 * Handle the operations.
-	 * 
-	 * @param operationCollection
+	 * handle the given operation
 	 */
-	private void handleOperations(OperationCollection operationCollection) throws AbstractAgentException {
-		LOGGER.info("handle operations");
+	private OperationStatus handleOperation(Operation operation) throws AbstractAgentException {
+		LOGGER.debug("handle operation");
 
-		for (Operation operation : operationCollection.getOperations()) {
-			OperationsHandlerService handler = findHandler(operation);
-			handleOperation(handler, operation);
-			
-			// update new status
-			updateOperation(operation);
-			// check the thread state
-			// !!! the interrupted status of the thread is cleared
-			if (!running.get() || Thread.interrupted()) {
-				break;
-			}
-		}
+        // get and check specific operation handler
+        OperationsHandlerService handler = findHandler(operation);
+        if (Objects.isNull(handler)) {
+            LOGGER.error("no handler found for operation {}", operation.getProperties());
+            return OperationStatus.FAILED;
+        }
+
+        // set status EXECUTING
+        updateOperationStatus(operation, OperationStatus.EXECUTING);
+                
+        // execute operation and return status
+        LOGGER.debug("execute operation {}", operation.getProperties());
+        try {
+            return handler.execute(operation);
+        } catch (Exception e) {
+            LOGGER.error("can't execute operation", e);
+            return OperationStatus.FAILED;
+        }
 	}
 
-	/**
-	 * get the pending operations from the platform
-	 * 
-	 * @param size maximum number of operations to get 
-	 * @return a collection of pending operations
-	 */
-	private OperationCollection getPendingOperations(int size) {
-		LOGGER.info("get pending operations");
-		
-		// get pending operations
-		OperationCollection pendingOperations;
-		try {
-		    pendingOperations = platformService.getOperationCollection(OperationStatus.PENDING, size); 
-		} catch(AbstractAgentException e) {
-		    LOGGER.info("can't get pending operations from platform", e);
-		    return null;
-		}
-
-        if (Objects.isNull(pendingOperations) || Objects.isNull(pendingOperations.getOperations())
-                        || pendingOperations.getOperations().length == 0) {
+    /**
+     * get the next pending operations from the platform
+     * 
+     * @param size maximum number of operations to get 
+     * @return a collection of pending operations
+     */
+	private Operation getNextPendingOperation() {
+        LOGGER.debug("get next pending operation");
+        
+        try {
+            return platformService.getNextPendingOperation(); 
+        } catch(AbstractAgentException e) {
+            LOGGER.info("can't get pending operation from platform", e);
             return null;
         }
-		
-		return pendingOperations;
-	}
-
+    }
+	
 	/**
 	 * Find a suitable handler of the operation.
 	 * 
@@ -204,53 +200,27 @@ public class OperationWorker {
 	 * @return the service implementation or null
 	 */
 	private OperationsHandlerService findHandler(Operation operation) {
-		LOGGER.info("find operation handler {}", operation.getAttributes());
+		LOGGER.info("find operation handler {}", operation.getProperties());
 
 		for (Entry<String, OperationsHandlerService> mapEntry : operationHandlerServicesMap.entrySet()) {
-			if (Objects.nonNull(operation.get(mapEntry.getKey()))) {
+			if (Objects.nonNull(operation.getProperty(mapEntry.getKey()))) {
 				LOGGER.debug("found operation handler {}", mapEntry.getValue().getClass());
 				return mapEntry.getValue();
 			}
 		}
 
-		LOGGER.debug("did not found operation handler {}", operation.getAttributes());
+		LOGGER.debug("did not found operation handler {}", operation.getProperties());
 		return null;
 	}
 
 	/**
-	 * handles the given operation by the given operation handler
+	 * updates the status of the given operation at platform
 	 */
-	private void handleOperation(OperationsHandlerService handler, Operation operation) throws AbstractAgentException {
-        if (Objects.isNull(handler)) {
-            // error case
-            LOGGER.error("no handler found for operation {}", operation.getAttributes());
-            operation.setStatus(OperationStatus.FAILED);
-            return;
-        }
-         
-        // set status EXECUTING
-        operation.setStatus(OperationStatus.EXECUTING);
-        updateOperation(operation);
-                
-        // execute operation and set status
-        LOGGER.debug("execute operation {}", operation.getAttributes());
-        try {
-            OperationStatus operationStatus = handler.execute(operation);
-            LOGGER.debug("the operation status is {}", operationStatus);
-            operation.setStatus(operationStatus);
-        } catch (Exception e) {
-            // error case
-            LOGGER.error("can't execute operation", e);
-            operation.setStatus(OperationStatus.FAILED);
-        }
-	}
-	
-	/**
-	 * updates the given operation at platform
-	 */
-	private void updateOperation(Operation operation) throws AbstractAgentException {
-		LOGGER.info("update operation {}", operation.getAttributes());
-		platformService.updateOperation(operation);
+	private void updateOperationStatus(Operation operation, OperationStatus status) throws AbstractAgentException {
+	    String id = operation.getId();
+		LOGGER.info("update status of operation '{}' to '{}'", id, status);
+		operation.setStatus(status);
+		platformService.updateOperationStatus(id, status);
 	}
 
 	/**

@@ -1,6 +1,7 @@
 package com.telekom.cot.device.agent.operation.softwareupdate;
 
-import static com.telekom.cot.device.agent.common.util.AssertionUtil.*;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.assertNotEmpty;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.createExceptionAndLog;
 
 import java.net.URL;
 
@@ -11,8 +12,8 @@ import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.OperationServiceException;
 import com.telekom.cot.device.agent.operation.handler.AbstractOperationExecute;
 import com.telekom.cot.device.agent.operation.handler.OperationUtil;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.system.properties.Software;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
 
 /**
  * Example: ExtensibleObject{ anyObject={ creationTime=Tue Mar 06 12:28:14 CET 2018, c8y_SoftwareList=[

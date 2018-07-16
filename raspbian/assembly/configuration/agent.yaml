@@ -1,4 +1,4 @@
-# Note: Made changes will come into effect only after a restart of the agent                                                                         
+ # Note: Made changes will come into effect only after a restart of the agent                                                                                                                                                       
 agent:
   common:
     # timeout for connectivity check on startup (-1 = no timeout, 0 = no connectivity check, >0 = timeout in minutes)
@@ -8,8 +8,8 @@ agent:
   
   # properties
   properties:
-    # c8y_Configuration (represented by this agent.yaml) and
-    # c8y_SoftwareList (represented by this deployment)
+    # c8y_Configuration (represents by this agent.yaml) and
+    # c8y_SoftwareList (represents by this deployment)
     # are default implementations of the agent and
     # not changeable by system properties
     system:
@@ -23,7 +23,7 @@ agent:
     # inventory service configuration
     inventoryService:
       deviceType: c8y_Linux
-      deviceName: CoTJavaAgent
+      deviceName: CoTJavaAgent  
       # set true to enable measurements 
       isDevice: true
       # set true to enable operations 
@@ -31,9 +31,6 @@ agent:
 
     # platform service configuration
     platformService:
-      # proxy settings
-      proxyHost: null # by default
-      proxyPort: null # by default
       # CoT Host name
       hostName: ram.m2m.telekom.com # by default
       # registration key
@@ -47,6 +44,23 @@ agent:
         valueTemplate: HARDWARE_SERIAL
         type: CoTJavaAgent
         value: null
+      # only one configuration can be chosen.
+      # configuration properties only for REST
+      restConfiguration:
+        # proxy settings
+        proxyHost: null # by default
+        proxyPort: null # by default
+        # the count of operations to get at one request 
+        operationsRequestSize: 10
+      # configuration properties only for MQTT
+      mqttConfiguration:
+        # brocker port and xID
+        port: 8883 # by default
+        xId: novaMqttTemplates04 # by default
+        # publish and subscribe timeout in seconds
+        # the minimum is 1 second
+        timeout: 10 # by default
+        delaySendMeasurement: 100 # milliseconds
 
     # device credentials service configuration
     deviceCredentialsService:
@@ -72,8 +86,6 @@ agent:
     operationService:
       # time in seconds
       interval: 10
-      # the count of requested operations
-      resultSize: 1
       # shutdown timeout in milliseconds for stopping operation service and its operation handlers
       shutdownTimeout: 5000
       handlersShutdownTimeout: 500 
@@ -92,13 +104,13 @@ agent:
         recordReadingsInterval: 1 # interval in seconds at which values are read
         alarmConfigurations:
           -
-            text: "Warning alarm: Temperature reached a value of <value>"
+            text: "Warning alarm - Temperature reached a value of <value>"
             type: TemperatureAlarmWarning
             minValue: 60
             maxValue: 70
             severity: WARNING # CRITICAL, MAJOR, MINOR, WARNING
           -
-            text: "Critical alarm: Temperature reached a value of <value>"
+            text: "Critical alarm - Temperature reached a value of <value>"
             type: TemperatureAlarmCritical
             minValue: 70
             maxValue: 100

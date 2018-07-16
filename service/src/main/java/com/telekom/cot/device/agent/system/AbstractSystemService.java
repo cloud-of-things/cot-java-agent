@@ -4,16 +4,19 @@ import static com.telekom.cot.device.agent.common.util.AssertionUtil.assertNotNu
 import static com.telekom.cot.device.agent.common.util.AssertionUtil.createExceptionAndLog;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.PropertyNotFoundException;
+import com.telekom.cot.device.agent.common.injection.Inject;
 import com.telekom.cot.device.agent.service.AbstractAgentService;
-import com.telekom.cot.device.agent.service.configuration.MobilePropertiesConfiguration;
 import com.telekom.cot.device.agent.system.properties.ConfigurationProperties;
 import com.telekom.cot.device.agent.system.properties.MobileProperties;
+import com.telekom.cot.device.agent.system.properties.MobilePropertiesConfiguration;
 import com.telekom.cot.device.agent.system.properties.Properties;
 import com.telekom.cot.device.agent.system.properties.SoftwareProperties;
 
@@ -23,6 +26,9 @@ public abstract class AbstractSystemService extends AbstractAgentService impleme
 
 	private HashMap<Class<? extends Properties>, Properties> properties = new HashMap<>();
 
+	@Inject
+	private ConfigurationManager configurationManager;
+	
 	@Override
 	public void start() throws AbstractAgentException {
 		// get and set configuration properties, software properties and mobile
@@ -70,7 +76,7 @@ public abstract class AbstractSystemService extends AbstractAgentService impleme
 	 */
 	private ConfigurationProperties getConfigurationProperties() {
 		try {
-			return new ConfigurationProperties(getConfigurationManager().getConfiguration());
+			return new ConfigurationProperties(configurationManager.getConfiguration());
 		} catch (Exception e) {
 			LOGGER.info("can't get configuration content, create new empty configuration properties", e);
 			return new ConfigurationProperties();
@@ -81,19 +87,16 @@ public abstract class AbstractSystemService extends AbstractAgentService impleme
 	 * Gets all software properties.
 	 * 
 	 * @return The software properties
-	 * @throws AbstractAgentException
 	 */
-	private SoftwareProperties getSoftwareProperties() throws AbstractAgentException {
-		SoftwareProperties softwareProperties = new SoftwareProperties();
-
+	private SoftwareProperties getSoftwareProperties() {
 		// Read the specification title and version from the package containing the
 		// SystemService
-		SystemService service = getService(SystemService.class);
-		Package objPackage = service.getClass().getPackage();
-		String name = objPackage.getSpecificationTitle();
-		String version = objPackage.getSpecificationVersion();
-		softwareProperties.addSoftware(name, version, null);
+		Package systemServicePackage = this.getPackage();
+		String name = Objects.nonNull(systemServicePackage) ? systemServicePackage.getSpecificationTitle() : "";
+		String version = Objects.nonNull(systemServicePackage) ? systemServicePackage.getSpecificationVersion() : "";
 
+		SoftwareProperties softwareProperties = new SoftwareProperties();
+		softwareProperties.addSoftware(name, version, null);
 		return softwareProperties;
 	}
 
@@ -102,7 +105,7 @@ public abstract class AbstractSystemService extends AbstractAgentService impleme
 	 */
 	private MobileProperties getMobileProperties() throws AbstractAgentException {
 		try {
-			return getConfigurationManager().getConfiguration(MobilePropertiesConfiguration.class);
+			return configurationManager.getConfiguration(MobilePropertiesConfiguration.class);
 		} catch (Exception e) {
 			LOGGER.info("can't get mobile properties from configuration, create new empty mobile properties", e);
 			return new MobileProperties();

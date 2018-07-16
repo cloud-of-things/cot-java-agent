@@ -4,12 +4,14 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.credentials.DeviceCredentialsServiceConfiguration;
-import com.telekom.cot.device.agent.platform.PlatformServiceConfiguration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationManager;
+import com.telekom.cot.device.agent.platform.mqtt.PlatformServiceMqttConfiguration;
+import com.telekom.cot.device.agent.platform.rest.PlatformServiceRestConfiguration;
 
 public class ConnectivityChecker {
     
@@ -28,8 +30,11 @@ public class ConnectivityChecker {
             return;
         }
         
-        // get hostname from platform service configuration and bootstrap tenant from device credentials service configuration 
-        String hostname = getTenant(configurationManager) + "." + getHostname(configurationManager);
+        // try to get hostname from platform service (mqtt/rest) configuration 
+        String hostname = getHostnameMqtt(configurationManager);
+        if(StringUtils.isEmpty(hostname)) {
+            hostname = getHostnameRest(configurationManager);
+        }
 
         // check connection every 15 seconds, 4 times timeout (in minutes)
         connectivityTimeout *= 4;
@@ -76,29 +81,49 @@ public class ConnectivityChecker {
     }
     
     /**
-     * get hostname from platform service configuration
+     * get hostname from platform service mqtt configuration
      */
-    private static String getHostname(ConfigurationManager configurationManager) throws AppMainException {
+    private static String getHostnameMqtt(ConfigurationManager configurationManager) {
+        // try to get hostname by PlatformServiceMqttConfiguration
         try {
-            PlatformServiceConfiguration configuration = configurationManager.getConfiguration(PlatformServiceConfiguration.class);
+            PlatformServiceMqttConfiguration configuration = configurationManager.getConfiguration(PlatformServiceMqttConfiguration.class);
             return configuration.getHostName();
         } catch (Exception e) {
-            throw logErrorAndCreateException("can't get hostname from platform service configuration", e);
+            LOGGER.debug("can't get hostname from platform service mqtt configuration", e);
+            return null;
         }
     }
 
     /**
-     * get bootstrap tenant from device credentials service configuration
+     * get hostname from platform service rest configuration
      */
-    private static String getTenant(ConfigurationManager configurationManager) throws AppMainException {
+    private static String getHostnameRest(ConfigurationManager configurationManager) throws AppMainException {
+        // try to get bootstrap tenant from device credentials service configuration
+        String bootstrapTenant = null;
         try {
             DeviceCredentialsServiceConfiguration configuration = configurationManager.getConfiguration(DeviceCredentialsServiceConfiguration.class);
-            return configuration.getBootstrapCredentials().getTenant();
+            bootstrapTenant = configuration.getBootstrapCredentials().getTenant();
         } catch (Exception e) {
             throw logErrorAndCreateException("can't get bootstrap tenant from device credentials service configuration", e);
         }
+
+        // check bootstrap tenant
+        if (StringUtils.isEmpty(bootstrapTenant)) {
+            throw logErrorAndCreateException("can't get bootstrap tenant from device credentials service configuration", null);
+        }
+        
+        // try to get hostname by PlatformServiceRestConfiguration
+        try {
+            PlatformServiceRestConfiguration configuration = configurationManager.getConfiguration(PlatformServiceRestConfiguration.class);
+            return bootstrapTenant + "." + configuration.getHostName();
+        } catch (Exception e) {
+            throw logErrorAndCreateException("can't get hostname from platform service rest configuration", e);
+        }
     }
-    
+
+    /**
+     * connect to given host at given port
+     */
     private static boolean connect(String host, int port) {
         try {
             InetAddress address = InetAddress.getByName(host);

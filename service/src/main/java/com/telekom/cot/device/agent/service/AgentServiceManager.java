@@ -1,8 +1,8 @@
 package com.telekom.cot.device.agent.service;
 
+import com.telekom.cot.device.agent.common.configuration.AgentCredentialsManager;
+import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
-import com.telekom.cot.device.agent.service.configuration.AgentCredentialsManager;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationManager;
 
 public interface AgentServiceManager extends AgentServiceProvider {
 

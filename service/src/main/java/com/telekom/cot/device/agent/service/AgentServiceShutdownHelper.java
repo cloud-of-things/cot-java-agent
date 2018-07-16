@@ -1,6 +1,7 @@
 package com.telekom.cot.device.agent.service;
 
-import static com.telekom.cot.device.agent.common.util.AssertionUtil.*;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.assertNotNull;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.createExceptionAndLog;
 
 import java.util.ArrayList;
 import java.util.List;

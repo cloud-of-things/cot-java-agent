@@ -1,7 +1,9 @@
 package com.telekom.cot.device.agent.raspbian.operation;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 
@@ -9,12 +11,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
-import com.telekom.cot.device.agent.operation.handler.OperationExecuteBuilder;
-import com.telekom.cot.device.agent.raspbian.operation.RestartOperationExecute;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.operation.handler.OperationExecute;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
+import com.telekom.cot.device.agent.operation.handler.OperationExecuteBuilder;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 
 public class RestartOperationExecuteTest {
 

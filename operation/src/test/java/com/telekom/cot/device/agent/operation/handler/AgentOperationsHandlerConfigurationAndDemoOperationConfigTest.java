@@ -1,12 +1,12 @@
 package com.telekom.cot.device.agent.operation.handler;
 
-import com.telekom.cot.device.agent.common.ChecksumAlgorithm;
-import com.telekom.cot.device.agent.common.util.ValidationUtil;
-import com.telekom.cot.device.agent.operation.softwareupdate.SoftwareUpdateConfig;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.telekom.cot.device.agent.common.ChecksumAlgorithm;
+import com.telekom.cot.device.agent.common.util.ValidationUtil;
+import com.telekom.cot.device.agent.operation.softwareupdate.SoftwareUpdateConfig;
 
 public class AgentOperationsHandlerConfigurationAndDemoOperationConfigTest {
 

@@ -4,6 +4,8 @@ import static com.telekom.cot.device.agent.common.util.AssertionUtil.assertIsTru
 import static com.telekom.cot.device.agent.common.util.AssertionUtil.assertNotNull;
 import static com.telekom.cot.device.agent.common.util.AssertionUtil.createExceptionAndLog;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,9 +17,8 @@ import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
 import com.telekom.cot.device.agent.common.exc.OperationServiceException;
 import com.telekom.cot.device.agent.operation.handler.AgentOperationsHandlerService.OperationType;
 import com.telekom.cot.device.agent.operation.handler.TestOperationExecute.GivenStatus;
+import com.telekom.cot.device.agent.platform.objects.Operation;
 import com.telekom.cot.device.agent.system.properties.Software;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.util.ExtensibleObject;
 
 public class OperationUtil {
 
@@ -34,7 +35,7 @@ public class OperationUtil {
         // get c8y_SoftwareList array from operation
         JsonArray softwareListArray;
         try {
-            softwareListArray = JsonArray.class.cast(operation.get(OperationType.C8Y_SOFTWARELIST.getAttribute()));
+            softwareListArray = JsonArray.class.cast(operation.getProperty(OperationType.C8Y_SOFTWARELIST.getAttribute()));
         } catch (Exception e) {
             throw createExceptionAndLog(OperationServiceException.class, LOGGER,
                             CANT_PERFORM_EXECUTE + "can't get '" + OperationType.C8Y_SOFTWARELIST.getAttribute() + "' from operation", e);
@@ -63,15 +64,15 @@ public class OperationUtil {
      * @throws AbstractAgentException
      */
     public static GivenStatus getGivenStatus(Operation operation) throws AbstractAgentException {
-        // get demoOperation
-        ExtensibleObject demoOperation =
-                (ExtensibleObject) operation.get(OperationType.C8Y_TEST_OPERATION.getAttribute());
-        assertNotNull(demoOperation, AgentOperationHandlerException.class, LOGGER, "did not found the demo operation");
+        // get testOperation
+        @SuppressWarnings("unchecked")
+        Map<String, Object> testOperation = operation.getProperty(OperationType.C8Y_TEST_OPERATION.getAttribute(), Map.class);
+        assertNotNull(testOperation, AgentOperationHandlerException.class, LOGGER, "did not found the demo operation");
         // get status
-        Object status = demoOperation.get("givenStatus");
+        Object status = testOperation.get("givenStatus");
         assertNotNull(status, AgentOperationHandlerException.class, LOGGER, "did not found the demo operation status");
         // execute demo operation
-        TestOperationExecute.GivenStatus givenStatus = TestOperationExecute.GivenStatus.valueOf(status.toString());
+        TestOperationExecute.GivenStatus givenStatus = TestOperationExecute.GivenStatus.find(status.toString());
         assertNotNull(givenStatus, AgentOperationHandlerException.class, LOGGER, "did not found the given operation status");
         LOGGER.info("execute demo operation by givenStatus={}", givenStatus);
         return givenStatus;

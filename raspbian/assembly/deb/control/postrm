@@ -4,4 +4,5 @@ delgroup cotagent
 sed -i '/cotagent ALL= EXEC: NOPASSWD: \/sbin\/reboot/d' /etc/sudoers
 sed -i '/cotagent ALL= EXEC: NOPASSWD: \/usr\/bin\/dpkg -i device-agent\*deb/d' /etc/sudoers
 sed -i '/cotagent ALL= EXEC: NOPASSWD: \/etc\/init.d\/cot-java-agent/d' /etc/sudoers
+sed -i '/cotagent ALL= EXEC: NOPASSWD: \/usr\/bin\/vcgencmd measure_temp/d' /etc/sudoers
 update-rc.d cot-java-agent remove

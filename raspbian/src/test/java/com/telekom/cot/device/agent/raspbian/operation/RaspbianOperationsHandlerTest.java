@@ -1,7 +1,10 @@
 package com.telekom.cot.device.agent.raspbian.operation;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,10 +20,8 @@ import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
 import com.telekom.cot.device.agent.operation.handler.OperationExecute;
 import com.telekom.cot.device.agent.operation.handler.OperationExecuteBuilder;
-import com.telekom.cot.device.agent.raspbian.operation.RaspbianOperationsHandler;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
-import com.telekom.m2m.cot.restsdk.util.ExtensibleObject;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(OperationExecuteBuilder.class)
@@ -39,7 +40,7 @@ public class RaspbianOperationsHandlerTest {
     public void setUp() throws AbstractAgentException {
 
         operation = new Operation();
-        operation.set("c8y_Restart", new ExtensibleObject());
+        operation.setProperty("c8y_Restart", new HashMap<String, Object>());
 
         handler = new RaspbianOperationsHandler();
 
@@ -76,7 +77,7 @@ public class RaspbianOperationsHandlerTest {
     @Test(expected=AgentOperationHandlerException.class)
     public void testExecuteNotSupportedOperation() throws Exception {
         operation = new Operation();
-        operation.set("c8y_Test", new ExtensibleObject());
+        operation.setProperty("c8y_Test", new HashMap<String, Object>());
         handler.execute(operation);
     }
     
@@ -105,5 +106,4 @@ public class RaspbianOperationsHandlerTest {
         // when execute by handler than status is SUCCESSFUL
         assertEquals(OperationStatus.SUCCESSFUL, handler.execute(operation));
     }
-
 }

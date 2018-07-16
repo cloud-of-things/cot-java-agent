@@ -1,0 +1,48 @@
+# -----------------------------------------------------------------------------------------------
+# structure of response templates:
+#   11:     fixed ID, which tags a request template
+#   <ID>:   a unique number that is used to address the template
+#   <BASE>: the base JSON path showing the object from which the values are extracted
+#   <COND>: the conditional JSON path, used here as a filter
+#   <VALUE>[,<VALUE>]: JSON path showing exactly the value to be extracted
+# -----------------------------------------------------------------------------------------------
+
+# get managed object
+11,${GET_MANAGED_OBJECT_ID_RES},,"$.externalId","$.externalId","$.managedObject.id"
+
+# create managed object
+# is used by MQTTHelper
+11,${CREATE_MANAGED_OBJECT_ID_RES},,"$.c8y_IsDevice","$.id"
+
+# startup event
+11,${EVENT_STARTUP_RES},,@.c8y_EventStartup,$.id,@.c8y_EventStartup
+
+# measurement
+11,${CREATE_MEASUREMENT_RES},,@.c8y_Temperature,$.id
+
+# alarm
+11,${CREATE_ALARM_RES},,@.c8y_AgentAlarm,$.id
+
+# get status of operations
+11,${STATUS_OF_OPERATION_RESTART_RES},$.operations,"$.c8y_Restart","$.id","$.status"
+11,${STATUS_OF_OPERATION_TEST_RES},$.operations,"$.c8y_TestOperation","$.id","$.status"
+
+# update operations status
+11,${UPDATE_OPERATION_SUCCESSFUL_STATUS_RES},,"$.c8y_OperationUpdate.SUCCESSFUL","$.id"
+11,${UPDATE_OPERATION_FAILED_STATUS_RES},,"$.c8y_OperationUpdate.FAILED","$.id"
+11,${UPDATE_OPERATION_EXECUTING_STATUS_RES},,"$.c8y_OperationUpdate.EXECUTING","$.id"
+
+# update supported operations
+11,${UPDATE_SUPPORTED_OPERATIONS_RES},,"$.c8y_InventoryUpdate.c8y_SupportedOperations","$.id"
+
+# update fragments: hardware, software, mobile, firmware and configurations
+11,${UPDATE_HARDWARE_RES},,"$.c8y_InventoryUpdate.c8y_Hardware","$.id"
+11,${UPDATE_SOFTWARE_LIST_RES},,"$.c8y_InventoryUpdate.c8y_SoftwareList","$.id"
+11,${UPDATE_MOBILE_RES},,"$.c8y_InventoryUpdate.c8y_Mobile","$.id"
+11,${UPDATE_FIRMWARE_RES},,"$.c8y_InventoryUpdate.c8y_Firmware","$.id"
+11,${UPDATE_CONFIGURATION_RES},,"$.c8y_InventoryUpdate.c8y_Configuration","$.id"
+
+# execute operations
+11,${OPERATION_RESTART_RES},,@.c8y_Restart,@.id,$.status
+11,${OPERATION_TEST_RES},,@.c8y_TestOperation,@.id,$.status,@.c8y_TestOperation.givenStatus
+11,${OPERATION_CONFIGURATION_RES},,@.c8y_Configuration,@.id,$.status,@.c8y_Configuration.config

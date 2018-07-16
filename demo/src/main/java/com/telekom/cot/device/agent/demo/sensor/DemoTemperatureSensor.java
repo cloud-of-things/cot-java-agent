@@ -7,7 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.SensorDeviceServiceException;
-import com.telekom.cot.device.agent.sensor.SensorMeasurement;
+import com.telekom.cot.device.agent.common.injection.Inject;
+import com.telekom.cot.device.agent.common.util.AssertionUtil;
+import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
 import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
 import com.telekom.cot.device.agent.sensor.deviceservices.TemperatureSensor;
 
@@ -16,6 +18,7 @@ public class DemoTemperatureSensor extends TemperatureSensor {
     /** The logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(DemoTemperatureSensor.class);
 
+    @Inject
     private DemoTemperatureSensorConfiguration configuration;
     private TemperatureFileReader temperatureFileReader = new TemperatureFileReader();
 
@@ -24,8 +27,9 @@ public class DemoTemperatureSensor extends TemperatureSensor {
      */
     @Override
     public void start() throws AbstractAgentException {
+        AssertionUtil.assertNotNull(configuration, SensorDeviceServiceException.class, LOGGER, "no configuration given");
+        
     	// get configuration and create TemperatureFileReader
-    	configuration = getConfigurationManager().getConfiguration(DemoTemperatureSensorConfiguration.class);
     	temperatureFileReader.setRepeatMeasurements(configuration.isRepeatMeasurements());
     	
     	// read temperature measurements from file

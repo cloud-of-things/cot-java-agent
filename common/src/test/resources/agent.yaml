@@ -1,0 +1,4 @@
+agent:
+  booleanProp: true
+  intProp: 1
+  stringProp: text

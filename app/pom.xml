@@ -19,7 +19,12 @@
 		</dependency>
 		<dependency>
 			<groupId>com.telekom.cot</groupId>
-			<artifactId>device-agent-platform</artifactId>
+			<artifactId>device-agent-platform-rest</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-platform-mqtt</artifactId>
 			<version>${cot.agent.version}</version>
 		</dependency>
 		<dependency>
@@ -30,6 +35,11 @@
 		<dependency>
 			<groupId>com.telekom.cot</groupId>
 			<artifactId>device-agent-sensor</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-event</artifactId>
 			<version>${cot.agent.version}</version>
 		</dependency>
 		<dependency>

@@ -1,6 +1,6 @@
 package com.telekom.cot.device.agent.sensor.configuration;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 

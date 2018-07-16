@@ -1,6 +1,8 @@
 package com.telekom.cot.device.agent.operation.handler;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -15,31 +17,30 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.telekom.cot.device.agent.common.ChecksumAlgorithm;
+import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.operation.softwareupdate.SoftwareUpdateConfig;
 import com.telekom.cot.device.agent.platform.PlatformService;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.service.AgentServiceProvider;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationManager;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
-import com.telekom.m2m.cot.restsdk.util.ExtensibleObject;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(OperationExecuteBuilder.class)
 public class AgentOperationsHandlerServiceTest {
 
     private AgentOperationsHandlerService agentOperationsHandlerService;
-    private AgentOperationsHandlerConfiguration config;
+    private AgentOperationsHandlerConfiguration configuration;
     private Operation testOperation;
     private Operation confOperation;
     private Operation softwareOperation;
 
     @Mock
-    private AgentServiceProvider mockServiceProvider;
-    @Mock
     private ConfigurationManager mockConfigurationManager;
+    @Mock
+    private AgentServiceProvider mockServiceProvider;
     @Mock
     private OperationExecuteBuilder mockOperationExecuteBuilder;
     @Mock
@@ -58,26 +59,29 @@ public class AgentOperationsHandlerServiceTest {
         // service
         agentOperationsHandlerService = new AgentOperationsHandlerService();
         // conf
-        config = new AgentOperationsHandlerConfiguration();
+        configuration = new AgentOperationsHandlerConfiguration();
         TestOperationConfig demoOperationConfig = new TestOperationConfig();
         demoOperationConfig.setDelay(1);
-        config.setTestOperation(demoOperationConfig);
-        config.setSoftwareUpdate(new SoftwareUpdateConfig());
-        config.getSoftwareUpdate().setChecksumAlgorithm(ChecksumAlgorithm.MD5);
+        configuration.setTestOperation(demoOperationConfig);
+        configuration.setSoftwareUpdate(new SoftwareUpdateConfig());
+        configuration.getSoftwareUpdate().setChecksumAlgorithm(ChecksumAlgorithm.MD5);
+        InjectionUtil.inject(agentOperationsHandlerService, configuration);
 
-        // demo operation
+        // test operation
         testOperation = new Operation();
-        ExtensibleObject demoOperationEx = new ExtensibleObject();
-        demoOperationEx.set("givenStatus", "GIVEN_SUCCESSFUL");
-        testOperation.set("c8y_TestOperation", testOperation);
+        HashMap<String, Object> testOperationFragment = new HashMap<>();
+        testOperationFragment.put("givenStatus", "GIVEN_SUCCESSFUL");
+        testOperation.setProperty("c8y_TestOperation", testOperationFragment);
+        
         // conf operation
         confOperation = new Operation();
-        ExtensibleObject confContentOperation = new ExtensibleObject();
-        confContentOperation.set("config", "agent.yaml");
-        confOperation.set("c8y_Configuration", confContentOperation);
+        HashMap<String, Object> confOperationFragment = new HashMap<>();
+        confOperationFragment.put("config", "agent.yaml");
+        confOperation.setProperty("c8y_Configuration", confOperationFragment);
+        
         // software operation
         softwareOperation = new Operation();
-        softwareOperation.set("c8y_SoftwareList", "[]");
+        softwareOperation.setProperty("c8y_SoftwareList", "[]");
         
         // inject mocks
         InjectionUtil.inject(agentOperationsHandlerService, mockServiceProvider);
@@ -94,7 +98,6 @@ public class AgentOperationsHandlerServiceTest {
         when(mockOperationExecuteBuilder.setParameters(Mockito.any())).thenReturn(mockOperationExecuteBuilder);
         when(mockOperationExecuteBuilder.setCallback(Mockito.any())).thenReturn(mockOperationExecuteBuilder);
         when(mockOperationExecuteBuilder.setConfiguration(Mockito.any())).thenReturn(mockOperationExecuteBuilder);
-        when(mockConfigurationManager.getConfiguration(AgentOperationsHandlerConfiguration.class)).thenReturn(config);
         when(mockOperationExecuteBuilder.build()).thenReturn(mockOperationExecute);
     }
 

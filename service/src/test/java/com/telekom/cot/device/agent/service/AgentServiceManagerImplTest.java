@@ -1,22 +1,26 @@
 package com.telekom.cot.device.agent.service;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
+import com.telekom.cot.device.agent.common.configuration.AgentCredentialsManager;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
+import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
+import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentServiceNotFoundException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
-import com.telekom.cot.device.agent.service.configuration.AgentCredentialsManager;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationManager;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 
 @SuppressWarnings("unchecked")
 public class AgentServiceManagerImplTest {
@@ -24,11 +28,14 @@ public class AgentServiceManagerImplTest {
 	@Mock private Logger mockLogger;
 	@Mock private ServiceLoader<AgentService> mockServiceLoader;
     @Mock private Iterator<AgentService> mockServiceIterator;
+    @Mock private ServiceLoader<AgentService> mockServiceLoaderInject;
+    @Mock private Iterator<AgentService> mockServiceIteratorInject;
     @Mock private ConfigurationManager mockConfigurationManager;
 	@Mock private AgentCredentialsManager mockAgentCredentialsManager;
 
     private TestService1 testService1 = new TestService1();
     private TestService2 testService2 = new TestService2();
+    private TestService3 testService3 = new TestService3();
     
     private AgentServiceManager agentServiceManager = AgentServiceManagerImpl.getInstance();
     
@@ -44,7 +51,21 @@ public class AgentServiceManagerImplTest {
     	when(mockServiceIterator.hasNext()).thenReturn(true, true, false);
     	when(mockServiceIterator.next()).thenReturn(testService2, testService1);
     	
-    	when(mockConfigurationManager.getConfiguration(Configuration.class)).thenReturn(new Configuration() {});
+    	when(mockConfigurationManager.getConfiguration(Configuration.class)).thenReturn(new Configuration() {});   	
+    }
+    
+    @Test
+    public void testInjectConfiguration() throws Exception {
+        InjectionUtil.injectStatic(AgentServiceManagerImpl.class, mockServiceLoaderInject);
+        InjectionUtil.injectStatic(AgentServiceManagerImpl.class, mockLogger); 
+        // default behavior: service loader returns one instance of 'TestService2' and one instance of 'TestService1'
+        when(mockServiceLoaderInject.iterator()).thenReturn(mockServiceIteratorInject);
+        when(mockServiceIteratorInject.hasNext()).thenReturn(true,false);
+        when(mockServiceIteratorInject.next()).thenReturn(testService3);
+        when(mockConfigurationManager.getConfiguration(TestConfiguration.class)).thenReturn(new TestConfiguration());
+        agentServiceManager.loadAndInitServices(mockConfigurationManager, mockAgentCredentialsManager);
+        agentServiceManager.getService(TestServiceIF3.class).start();
+        assertThat(testService3.getConfiguration(), Matchers.notNullValue(TestConfiguration.class));
     }
 
     /**
@@ -87,23 +108,6 @@ public class AgentServiceManagerImplTest {
     	verify(mockLogger).info("loaded and initialized {} agent services", 0);
 	}
 	
-    /**
-     * test method loadAndInitServices, iterator returns a service not extends AbstractAgentService
-     */
-	@Test
-	public void testLoadAndInitServicesNoAbstractAgentService() throws Exception {
-		AgentService mockAbstractService = mock(AgentService.class);
-		reset(mockServiceIterator);
-		when(mockServiceIterator.hasNext()).thenReturn(true, false);
-    	when(mockServiceIterator.next()).thenReturn(mockAbstractService);
-		
-		agentServiceManager.loadAndInitServices(mockConfigurationManager, mockAgentCredentialsManager);
-		
-		verify(mockLogger, never()).debug(eq("initialize agent service '{}'"), any(Class.class));
-    	verify(mockLogger).debug("loaded agent service '{}'", mockAbstractService.getClass());
-    	verify(mockLogger).info("loaded and initialized {} agent services", 1);
-	}	
-
 	/**
      * test method loadAndInitServices
      */
@@ -111,10 +115,10 @@ public class AgentServiceManagerImplTest {
 	public void testLoadServices() throws Exception {
 		agentServiceManager.loadAndInitServices(mockConfigurationManager, mockAgentCredentialsManager);
 		
-		verify(mockLogger).debug("initialize agent service '{}'", testService2.getClass());
-		verify(mockLogger).debug("initialize agent service '{}'", testService1.getClass());
-    	verify(mockLogger).debug("loaded agent service '{}'", testService2.getClass());
-    	verify(mockLogger).debug("loaded agent service '{}'", testService1.getClass());
+		verify(mockLogger, never()).warn(eq("can't initialize agent service '{}'"), eq(testService2.getClass()), any(AbstractAgentException.class));
+        verify(mockLogger, never()).warn(eq("can't initialize agent service '{}'"), eq(testService1.getClass()), any(AbstractAgentException.class));
+    	verify(mockLogger).debug("loaded agent service '{}' successfully", testService2.getClass());
+    	verify(mockLogger).debug("loaded agent service '{}' successfully", testService1.getClass());
     	verify(mockLogger).info("loaded and initialized {} agent services", 2);
 	}
 	
@@ -170,8 +174,9 @@ public class AgentServiceManagerImplTest {
 	public void testGetService() throws Exception {
     	agentServiceManager.loadAndInitServices(mockConfigurationManager, mockAgentCredentialsManager);
     	
-    	assertSame(testService1, agentServiceManager.getService(TestService1.class));
-    	assertSame(testService2, agentServiceManager.getService(TestService2.class));
+    	assertThat(agentServiceManager.getService(TestServiceIF1.class)!=null, Matchers.equalTo(true));
+    	assertThat(agentServiceManager.getService(TestServiceIF2.class)!=null, Matchers.equalTo(true));
+
 	}
 
 	/**
@@ -218,10 +223,8 @@ public class AgentServiceManagerImplTest {
     	agentServiceManager.loadAndInitServices(mockConfigurationManager, mockAgentCredentialsManager);
 
     	assertEquals(2, agentServiceManager.getServices(AgentService.class).size());
-    	assertEquals(1, agentServiceManager.getServices(TestService1.class).size());
-    	assertSame(testService1, agentServiceManager.getServices(TestService1.class).get(0));
-    	assertEquals(1, agentServiceManager.getServices(TestService2.class).size());
-    	assertSame(testService2, agentServiceManager.getServices(TestService2.class).get(0));
+    	assertEquals(1, agentServiceManager.getServices(TestServiceIF1.class).size());
+    	assertEquals(1, agentServiceManager.getServices(TestServiceIF2.class).size());
 	}
 	
 	/**

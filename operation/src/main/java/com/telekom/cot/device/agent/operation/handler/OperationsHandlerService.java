@@ -1,9 +1,9 @@
 package com.telekom.cot.device.agent.operation.handler;
 
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.service.AgentService;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
 
 public interface OperationsHandlerService extends AgentService {
 

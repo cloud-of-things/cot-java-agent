@@ -1,7 +1,10 @@
 package com.telekom.cot.device.agent.raspbian.system;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,9 +16,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.telekom.cot.device.agent.common.exc.SystemServiceException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.service.AgentServiceProvider;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.system.SystemService;
 import com.telekom.cot.device.agent.system.properties.FirmwareProperties;
 import com.telekom.cot.device.agent.system.properties.HardwareProperties;
@@ -47,10 +49,6 @@ public class RaspbianSystemServiceTest {
 	@Mock
 	private Process mockProcessOsVersion;
 	@Mock
-	private ConfigurationManager mockConfigurationManager;
-	@Mock
-	private HardwareProperties mockHardwareProperties;
-	@Mock
 	private AgentServiceProvider mockServiceProvider;
 
 	private RaspbianSystemService raspbianSystemService = new RaspbianSystemService();
@@ -60,7 +58,6 @@ public class RaspbianSystemServiceTest {
 		// init and inject mocks
 		MockitoAnnotations.initMocks(this);
 		InjectionUtil.inject(raspbianSystemService, mockRuntime);
-		InjectionUtil.inject(raspbianSystemService, mockConfigurationManager);
 		InjectionUtil.inject(raspbianSystemService, mockServiceProvider);
 		
 		// behavior of mocked Runtime

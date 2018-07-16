@@ -4,8 +4,8 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationPath;
+import com.telekom.cot.device.agent.common.annotations.ConfigurationPath;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 
 @ConfigurationPath("agent.services.inventoryService")
 public class InventoryServiceConfiguration implements Configuration {

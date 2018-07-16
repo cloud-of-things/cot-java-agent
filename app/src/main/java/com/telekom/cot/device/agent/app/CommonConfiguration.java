@@ -3,8 +3,8 @@ package com.telekom.cot.device.agent.app;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationPath;
+import com.telekom.cot.device.agent.common.annotations.ConfigurationPath;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 
 @ConfigurationPath("agent.common")
 public class CommonConfiguration implements Configuration {
@@ -12,7 +12,7 @@ public class CommonConfiguration implements Configuration {
     @NotNull
     private Integer connectivityTimeout;
 
-    @NotNull @Positive
+	@NotNull @Positive
 	private Integer shutdownTimeout;
 
     public Integer getConnectivityTimeout() {
@@ -23,7 +23,7 @@ public class CommonConfiguration implements Configuration {
         this.connectivityTimeout = connectivityTimeout;
     }
 
-    public Integer getShutdownTimeout() {
+	public Integer getShutdownTimeout() {
 		return shutdownTimeout;
 	}
 

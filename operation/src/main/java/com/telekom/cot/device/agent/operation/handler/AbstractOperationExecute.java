@@ -5,10 +5,10 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
 
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
+import com.telekom.cot.device.agent.platform.objects.Operation;
 
 public abstract class AbstractOperationExecute<C extends Configuration> implements OperationExecute<C> {
 

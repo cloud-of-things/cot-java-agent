@@ -1,30 +1,40 @@
 package com.telekom.cot.device.agent.operation;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 
-import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
 import com.telekom.cot.device.agent.common.exc.OperationServiceException;
 import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
-import com.telekom.cot.device.agent.inventory.InventoryService;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.operation.handler.OperationsHandlerService;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationCollection;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Restart;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 
 public class OperationWorkerTest {
 
@@ -33,18 +43,14 @@ public class OperationWorkerTest {
 	@Mock
 	Logger mockLogger;
 	@Mock
-	OperationCollection mockOperationCollection;
-	@Mock
 	PlatformService mockPlatformService;
 	@Mock
 	OperationsHandlerService mockHandlerService;
-	@Mock
-	InventoryService mockInventoryService;
 
-	// private ExternalId externalId = new ExternalId();
 	private Operation operation;
 	private List<OperationsHandlerService> operationHandlerServices;
-
+    private boolean requestedNextPendingOperationAlready;
+	
 	/** class to test */
 	private OperationWorker operationWorker;
 
@@ -54,121 +60,137 @@ public class OperationWorkerTest {
 		MockitoAnnotations.initMocks(this);
 
 		// initialize operation
-		operation = new Operation();
+		operation = new Operation("123");
 		operation.setStatus(OperationStatus.PENDING);
-		operation.set(RESTART_OPERATION_NAME, new Restart(RESTART_OPERATION_NAME));
+        operation.setProperty(RESTART_OPERATION_NAME, "test");
 
+        // behavior of PlatformService.getNextPendingOperation : return operation once
+        requestedNextPendingOperationAlready = false;
+        doAnswer(new Answer<Operation>() {
+            @Override
+            public Operation answer(InvocationOnMock invocation) throws Throwable {
+                // return 'operationPending' only at first time
+                if (requestedNextPendingOperationAlready) {
+                    return null;
+                }
+                
+                requestedNextPendingOperationAlready = true;
+                return operation;
+            }
+        }).when(mockPlatformService).getNextPendingOperation();
+		
 		// initialize handler map
 		operationHandlerServices = new ArrayList<>();
 		operationHandlerServices.add(mockHandlerService);
 
-		// behavior of mocked platform service
-		when(mockPlatformService.getOperationCollection(OperationStatus.PENDING, 1)).thenReturn(mockOperationCollection,
-				(OperationCollection) null);
-
-		// behavior of mocked operation collection
-		when(mockOperationCollection.hasNext()).thenReturn(false);
-		when(mockOperationCollection.getOperations()).thenReturn(new Operation[] { operation });
-
 		// behavior of mocked operation handler service
 		when(mockHandlerService.getSupportedOperations()).thenReturn(new String[] { RESTART_OPERATION_NAME });
-		when(mockHandlerService.execute(operation)).thenReturn(OperationStatus.SUCCESSFUL);
 		when(mockHandlerService.getSupportedOperations()).thenReturn(new String[] { RESTART_OPERATION_NAME });
+        when(mockHandlerService.execute(operation)).thenReturn(OperationStatus.SUCCESSFUL);
 
 		// initialize class to test and inject mocks
-		operationWorker = new OperationWorker(mockPlatformService, operationHandlerServices, 1, 1);
+		operationWorker = new OperationWorker(mockPlatformService, operationHandlerServices, 1);
 		InjectionUtil.injectStatic(OperationWorker.class, mockLogger);
 	}
 
 	@Test
-	public void testStartAndStopWithoutOperations() throws Exception {
-		reset(mockOperationCollection);
-		when(mockOperationCollection.getOperations()).thenReturn(new Operation[] {});
+	public void testNoPendingOperations() throws Exception {
+		doReturn(null).when(mockPlatformService).getNextPendingOperation();
 
-		/**
-		 * start and stop worker
-		 */
 		operationWorker.start();
 		assertTrue(operationWorker.isStarted());
-
+		TimeUnit.MILLISECONDS.sleep(100);
 		operationWorker.stop();
 		assertTrue(operationWorker.isStopped());
+
+        verify(mockPlatformService, never()).updateOperationStatus(any(String.class), any(OperationStatus.class));
+        verify(mockLogger, atLeast(1)).debug("no pending operation found");
 	}
 
+    @Test
+    public void testGetNextPendingOperationException() throws Exception {
+        Exception e = new PlatformServiceException("test");
+        doThrow(e).when(mockPlatformService).getNextPendingOperation();
+
+        operationWorker.start();
+        assertTrue(operationWorker.isStarted());
+        TimeUnit.MILLISECONDS.sleep(100);
+        operationWorker.stop();
+        assertTrue(operationWorker.isStopped());
+
+        verify(mockLogger, times(1)).debug("no pending operation found");
+        verify(mockPlatformService, never()).updateOperationStatus(any(String.class), any(OperationStatus.class));
+    }
+
+    @Test
+    public void testFoundNoHandler() throws Exception {
+        operation.removeProperty(RESTART_OPERATION_NAME);
+        operation.setProperty("c8y_NotExistingOperation", "test");
+        Map<String,Object> operationProperties = operation.getProperties();
+
+        operationWorker.start();
+        assertTrue(operationWorker.isStarted());
+        TimeUnit.MILLISECONDS.sleep(100);
+        operationWorker.stop();
+        assertTrue(operationWorker.isStopped());
+        
+        OperationStatus expectedStatus = OperationStatus.FAILED;
+        assertEquals(expectedStatus, operation.getStatus());
+        verify(mockPlatformService, never()).updateOperationStatus(any(String.class), eq(OperationStatus.EXECUTING));
+        verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), expectedStatus);
+        verify(mockLogger, times(1)).error("no handler found for operation {}", operationProperties);
+    }
+
 	@Test
-	public void testStartAndStopWithOperations_SUCCESSFUL() throws AbstractAgentException, InterruptedException {
+	public void testOperationExecutionSuccessful() throws Exception {
 		operationWorker.start();
-		Thread.sleep(100);
+		assertTrue(operationWorker.isStarted());
+		TimeUnit.MILLISECONDS.sleep(100);
 		operationWorker.stop();
-
-		verify(mockPlatformService, atLeastOnce()).getOperationCollection(OperationStatus.PENDING, 1);
-		verify(mockPlatformService, atLeast(2)).updateOperation(operation);
-		assertEquals(OperationStatus.SUCCESSFUL, operation.getStatus());
-
-	}
-
-	@Test
-	public void testStartAndStopWithOperations_FAILED() throws AbstractAgentException, InterruptedException {
-		reset(mockHandlerService);
-		when(mockHandlerService.execute(operation)).thenReturn(OperationStatus.FAILED);
-
-		operationWorker.start();
-		Thread.sleep(100);
-		operationWorker.stop();
-
-		verify(mockPlatformService, atLeastOnce()).getOperationCollection(OperationStatus.PENDING, 1);
-		verify(mockPlatformService, atLeast(2)).updateOperation(operation);
-		assertEquals(OperationStatus.FAILED, operation.getStatus());
-	}
-
-	@Test
-	public void testStartAndStopWithOperationsExecuteException() throws AbstractAgentException, InterruptedException {
-	    AbstractAgentException exception = new AgentOperationHandlerException("can't handle"); 
-		doThrow(exception).when(mockHandlerService).execute(operation);
-
-		operationWorker.start();
-		Thread.sleep(100);
-		operationWorker.stop();
-
-		verify(mockPlatformService, atLeastOnce()).getOperationCollection(OperationStatus.PENDING, 1);
-		verify(mockLogger).error("can't execute operation", exception);
-		verify(mockPlatformService, atLeastOnce()).updateOperation(operation);
-		assertEquals(OperationStatus.FAILED, operation.getStatus());
-	}
-
-	@Test
-	public void testStartAndStopWithOperationsNoHandler() throws AbstractAgentException, InterruptedException {
-
-		Operation unknownOperation = new Operation();
-		unknownOperation.setStatus(OperationStatus.PENDING);
-		unknownOperation.set("c8y_unknown", new Restart("c8y_unknown"));
-		Map<String, Object> operationAttributes = unknownOperation.getAttributes();
+		assertTrue(operationWorker.isStopped());
 		
-		reset(mockOperationCollection);
-		when(mockOperationCollection.getOperations()).thenReturn(new Operation[] { unknownOperation });
-
-		operationWorker.start();
-		Thread.sleep(100);
-		operationWorker.stop();
-
-        verify(mockPlatformService, atLeastOnce()).getOperationCollection(OperationStatus.PENDING, 1);
-		verify(mockLogger).debug("did not found operation handler {}", operationAttributes);
-		verify(mockPlatformService).updateOperation(unknownOperation);
-		assertEquals(OperationStatus.FAILED, unknownOperation.getStatus());
+        OperationStatus expectedStatus = OperationStatus.SUCCESSFUL;
+        assertEquals(expectedStatus, operation.getStatus());
+        verify(mockPlatformService, atLeastOnce()).getNextPendingOperation();
+        verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), OperationStatus.EXECUTING);
+        verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), expectedStatus);
+        verify(mockLogger, times(1)).debug("handled operation, status is {}", expectedStatus);
 	}
 
+    @Test
+    public void testOperationExecutionFailed() throws Exception {
+        doReturn(OperationStatus.FAILED).when(mockHandlerService).execute(operation);
+
+        operationWorker.start();
+        assertTrue(operationWorker.isStarted());
+        TimeUnit.MILLISECONDS.sleep(100);
+        operationWorker.stop();
+        assertTrue(operationWorker.isStopped());
+
+        OperationStatus expectedStatus = OperationStatus.FAILED;
+        assertEquals(expectedStatus, operation.getStatus());
+        verify(mockPlatformService, atLeastOnce()).getNextPendingOperation();
+        verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), OperationStatus.EXECUTING);
+        verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), expectedStatus);
+        verify(mockLogger, times(1)).debug("handled operation, status is {}", expectedStatus);
+    }
+
 	@Test
-	public void testStartAndStopWithOperationsGetException() throws AbstractAgentException, InterruptedException {
-		reset(mockPlatformService);
-		doThrow(new PlatformServiceException("test")).when(mockPlatformService)
-				.getOperationCollection(OperationStatus.PENDING, 1);
+	public void testHandlerServiceException() throws Exception {
+		Exception e = new AgentOperationHandlerException("test");
+		doThrow(e).when(mockHandlerService).execute(operation);
 
 		operationWorker.start();
-		Thread.sleep(100);
-		operationWorker.stop();
+		assertTrue(operationWorker.isStarted());
+		TimeUnit.MILLISECONDS.sleep(100);
+        operationWorker.stop();
+        assertTrue(operationWorker.isStopped());
 
-		verify(mockPlatformService, times(1)).getOperationCollection(OperationStatus.PENDING, 1);
-		verify(mockPlatformService, never()).updateOperation(any(Operation.class));
+        OperationStatus expectedStatus = OperationStatus.FAILED;
+        assertEquals(expectedStatus, operation.getStatus());
+        verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), OperationStatus.EXECUTING);
+        verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), expectedStatus);
+        verify(mockLogger, times(1)).error("can't execute operation", e);
 	}
 
 	@Test(expected = OperationServiceException.class)
@@ -185,7 +207,7 @@ public class OperationWorkerTest {
 
 	@Test
 	public void testNegativeInterval() throws Exception {
-		operationWorker = new OperationWorker(mockPlatformService, operationHandlerServices, -1, 1);
+		operationWorker = new OperationWorker(mockPlatformService, operationHandlerServices, -1);
 
 		operationWorker.start();
 		Thread.sleep(2000);

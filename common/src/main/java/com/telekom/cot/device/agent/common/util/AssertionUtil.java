@@ -1,6 +1,7 @@
 package com.telekom.cot.device.agent.common.util;
 
 import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -69,6 +70,20 @@ public class AssertionUtil {
      */
     public static void assertNotEmpty(Map<?, ?> map, Class<? extends AbstractAgentException> exceptionType, Logger logger, String errorMessage) throws AbstractAgentException {
         if(Objects.isNull(map) || map.isEmpty()) {
+            throw createExceptionAndLog(exceptionType, logger, errorMessage);
+        }
+    }
+
+    /**
+     * checks the given list and logs an error and throws an exception of given type when string is {@code null} or empty  
+     * @param list string to check
+     * @param exceptionType type of exception to throw if string is {@code null} or empty
+     * @param logger logger instance to log the error message
+     * @param errorMessage message to log and to use in the exception
+     * @throws AbstractAgentException if map is {@code null} or empty
+     */
+    public static void assertNotEmpty(List<?> list, Class<? extends AbstractAgentException> exceptionType, Logger logger, String errorMessage) throws AbstractAgentException {
+        if(Objects.isNull(list) || list.isEmpty()) {
             throw createExceptionAndLog(exceptionType, logger, errorMessage);
         }
     }

@@ -26,6 +26,11 @@
 			<artifactId>device-agent-common</artifactId>
 			<version>${cot.agent.version}</version>
 		</dependency>
+		<!--dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-platform-rest</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency-->
 	</dependencies>
 
 	<distributionManagement>
@@ -47,7 +52,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.0.2</version>
 				<configuration>
 					<archive>
 						<manifest>

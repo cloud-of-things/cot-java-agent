@@ -14,9 +14,9 @@ The Java agent contains following functionalities:
 * Send alarms
 * Execute operations
 * Update configuration
-* Update software
+* Update software (only available using HTTP REST communication)
 
-_Current version is: 0.10.2_
+_Current version is: 0.18.0_
 
 ## Prerequisites  
 
@@ -33,28 +33,28 @@ Note: Raspbian, the debian based, official operating system for all models of th
 
 ## Installing
 
-Software packages are available at https://github.com/cloud-of-things/cot-java-rest-agent/releases.  
+Software packages are available at https://github.com/cloud-of-things/cot-java-agent/releases.  
 To install the agent on a Raspberry Pi, start the terminal and install the pre-built debian package.
 
 ```
-$ wget https://github.com/cloud-of-things/cot-java-rest-agent/releases/download/v0.10.2/device-agent-raspbian_0.10.2_all.deb
-$ sudo dpkg -i device-agent-raspbian_0.10.2_all.deb
+$ wget https://github.com/cloud-of-things/cot-java-agent/releases/download/v0.18.0/device-agent-raspbian_0.18.0_all.deb
+$ sudo dpkg -i device-agent-raspbian_0.18.0_all.deb
 ```
 After installation, the agent software can be found at directory `/opt/cot-java-agent/` on the Raspberry Pi.  
 
-Note: The recommended model is "Raspberry Pi 3 Model B" or later.
+Note: The recommended model is "Raspberry Pi 3 Model B" or later.																	 
 
 ## Configuration
 
 The agent is completely configured via the single, comprehensive file  [agent.yaml](raspbian/assembly/configuration/agent.yaml)  
 
 To edit the agent.yaml use a text editor (e.g. Vi or nano):
+
+				
 ```
 $ sudo nano /opt/cot-java-agent/agent.yaml
 ```
-
 ### deviceName
-
 To set the name for the initial creation of the device in the CoT inventory adapt the deviceName:
 ```
 agent:
@@ -65,11 +65,20 @@ agent:
       deviceName: CoTJavaAgent
 ```
 
-### proxyHost, proxyPort, hostName
+### platformService
 
+You can choose between two different ways to communicate with CoT
+* HTTP REST
+* MQTT
+
+They are both configured in a different way. Take a look at one of the following sections.
+
+#### restConfiguration
+
+Delete the complete mqttConfiguration body.  
 **Only** if the Raspberry Pi is connected to the internet via a proxy server add the proxy details (e.g. proxyHost = 10.11.12.13, proxyPort = 3128).  
 **Only** if the hostName of your CoT instance differs from the default value (representing the standard production environment) adapt the hostName.   
-Note: hostName is the https address of your CoT instance. "https" and the tenant will be automatically added by the agent to the hostname (url = "https://" + tenant + "." + hostname).
+_Note: hostName is the https address of your CoT instance. "https" and the tenant will be automatically added by the agent to the hostname (url = "https://" + tenant + "." + hostname)._
 
 ```
 agent:
@@ -77,20 +86,44 @@ agent:
   services:
     ...
     platformService:
-      proxyHost:  null # by default
-      proxyPort:  null # by default
       hostName:   ram.m2m.telekom.com # by default
+      ...
+      restConfiguration:
+        proxyHost:  null # by default
+        proxyPort:  null # by default
+        operationsRequestSize: 10 # by default
 ```
+#### mqttConfiguration
+
+Delete the complete restConfiguration body.  
+Add "nb-iot" in front of your hostName.  
+**Only** if the hostname (without "nb-iot") of your CoT instance differs from the default value (representing the standard production environment) adapt the hostName.   
+_Note: hostName is the address of your CoT instance. The tenant will be automatically added by the agent to the hostname (url = "tenant + "." + hostname)._  
+
+```
+agent:
+...
+  services:
+    ...
+    platformService:
+      hostName: nb-iot.ram.m2m.telekom.com 
+      ...
+      mqttConfiguration:
+        port: 8883 # by default
+        xId: novaMqttTemplates04 # by default
+        timeout: 10 # by default
+```
+
+The tenant must be prepared for MQTT and the SmartREST template collection (novaMqttTemplates04) must be registered. See details in [CONFIGURATION.md](CONFIGURATION.md).
 
 For detailed information about the various parameters for the configuration via the `agent.yaml` have a look at [CONFIGURATION.md](CONFIGURATION.md)
 
 ## Running
 
 ### Starting the agent
-
 ```
 $ sudo /etc/init.d/cot-java-agent start
-```
+```	
 
 ### Registering the device
 
@@ -98,8 +131,7 @@ Get the serial number of your Raspberry Pi:
 ```
 $ cat /proc/cpuinfo | grep Serial
 Serial          : 0000000012345678
-```   
-
+```	
 * Open your CoT account in a web browser and go to the "Device registration" page
 * Click "Register device", enter the serial number and click "Register device"
 
@@ -108,7 +140,7 @@ Accept the registration
 * Approve the device by clicking on "Accept"
 * The device should now be available under "Devices"/"All devices" 
 
-### Sending measurements and alarms
+### Sending measurements and alarms	
 
 The default implementation for the Raspberry Pi will:
 * measure the CPU temperature every second
@@ -116,6 +148,7 @@ The default implementation for the Raspberry Pi will:
 * raise and send alarms if limits are exceeded
 
 Note: The values can be changed by editing the agent.yaml (on the device) or via configuration update (from the CoT). Please be aware that made changes will come into effect only after a restart of the agent.
+
 ```
 agent:
 ...
@@ -130,13 +163,13 @@ agent:
         recordReadingsInterval: 1 # interval in seconds at which values are read
         alarmConfigurations:
           -
-            text: "Warning alarm: Temperature reached a value of <value>"
+            text: "Warning alarm - Temperature reached a value of <value>"
             type: TemperatureAlarmWarning
             minValue: 60
             maxValue: 70
             severity: WARNING # CRITICAL, MAJOR, MINOR, WARNING
           -
-            text: "Critical alarm: Temperature reached a value of <value>"
+            text: "Critical alarm - Temperature reached a value of <value>"
             type: TemperatureAlarmCritical
             minValue: 70
             maxValue: 100
@@ -161,6 +194,24 @@ Developers can find further technical information in the [DEVELOPER.md](DEVELOPE
 ## Release Notes
 
 Short information about what has changed between releases.
+
+### Release 0.18.0
+
+* Fix bug in setting operation status
+* Support comments in configuration file
+
+### Release 0.17.0
+
+* Send alarms with MQTT
+* Execute inventory update with MQTT
+* Execute operations with MQTT
+* Execute configuration update with MQTT
+
+### Release 0.12.0
+
+* Register device with MQTT
+* Send measurements with MQTT
+* Send events with MQTT
 
 ### Release 0.10.2
 

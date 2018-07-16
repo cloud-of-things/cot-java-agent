@@ -1,4 +1,4 @@
-# Note: Made changes will come into effect only after a restart of the agent 
+ # Note: Made changes will come into effect only after a restart of the agent                                                                             
 agent:
   common:
     # timeout for connectivity check on startup (-1 = no timeout, 0 = no connectivity check, >0 = timeout in minutes)
@@ -41,9 +41,6 @@ agent:
 
     # platform service configuration
     platformService:
-      # proxy settings
-      proxyHost: null # by default
-      proxyPort: null # by default
       # CoT Host name
       hostName: ram.m2m.telekom.com # by default
       # registration key
@@ -57,6 +54,23 @@ agent:
         valueTemplate: HARDWARE_SERIAL
         type: CoTJavaAgent
         value: null
+      # only one configuration can be chosen.
+      # configuration properties only for REST
+      restConfiguration:
+        # proxy settings
+        proxyHost: null # by default
+        proxyPort: null # by default
+        # the count of operations to get at one request 
+        operationsRequestSize: 10
+      # configuration properties only for MQTT
+      mqttConfiguration:
+        # brocker port and xID
+        port: 8883 # by default
+        xId: novaMqttTemplates04 # by default
+        # publish and subscribe timeout in seconds
+        # the minimum is 1 second
+        timeout: 10 # by default
+        delaySendMeasurement: 100 # milliseconds
 
     # device credentials service configuration
     deviceCredentialsService:
@@ -73,7 +87,6 @@ agent:
         password: Fhdt1bb1f
         tenant: management
 
-
     # sensor service configuration
     sensorService:
       sendInterval: 5 # interval in seconds at which measurements are sent to the CoT
@@ -82,8 +95,6 @@ agent:
     operationService:
       # time in seconds
       interval: 10
-      # the count of requested operations
-      resultSize: 1
       # shutdown timeout in milliseconds for stopping operation service and its operation handlers
       shutdownTimeout: 5000
       handlersShutdownTimeout: 500 
@@ -105,7 +116,7 @@ agent:
         repeatMeasurements: true
         alarmConfigurations:
           -
-            text: "Warning alarm: Temperature reached a value of <value>"
+            text: "Warning alarm - Temperature reached a value of <value>"
             type: TemperatureAlarmWarning
             minValue: 25
             maxValue: 50

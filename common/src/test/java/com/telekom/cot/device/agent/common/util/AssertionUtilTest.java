@@ -1,16 +1,16 @@
 package com.telekom.cot.device.agent.common.util;
 
-import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
-import com.telekom.cot.device.agent.common.exc.ConfigurationNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
-
-import java.util.HashMap;
-import java.util.Map;
+import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
+import com.telekom.cot.device.agent.common.exc.ConfigurationNotFoundException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AssertionUtilTest {

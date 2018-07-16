@@ -60,5 +60,14 @@
 				<include>*</include>
 			</includes>
 		</fileSet>
+		
+		<!-- add certificates to the certificates directory -->
+		<fileSet>
+			<directory>assembly/certificates</directory>
+			<outputDirectory>certificates</outputDirectory>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
 	</fileSets>
 </assembly>

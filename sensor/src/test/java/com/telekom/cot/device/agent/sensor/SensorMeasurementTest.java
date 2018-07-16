@@ -1,22 +1,25 @@
 package com.telekom.cot.device.agent.sensor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.time.Instant;
 import java.util.Date;
 
 import org.junit.Test;
 
+import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
+
 public class SensorMeasurementTest {
 
 	@Test
 	public void testValueConstructor() {
-		SensorMeasurement sensorMeasurement = new SensorMeasurement("c8y_Temperature", 23.4f, "°C");
+		SensorMeasurement sensorMeasurement = new SensorMeasurement("c8y_Temperature", 23.4f, "ï¿½C");
 
 		assertNotNull(sensorMeasurement.getTime());
 		assertEquals("c8y_Temperature", sensorMeasurement.getType());
 		assertEquals(23.4f, sensorMeasurement.getValue(), 0.00001f);
-		assertEquals("°C", sensorMeasurement.getUnit());
+		assertEquals("ï¿½C", sensorMeasurement.getUnit());
 	}
 	
 	@Test
@@ -26,11 +29,11 @@ public class SensorMeasurementTest {
 		sensorMeasurement.setTime(time);
 		sensorMeasurement.setType("c8y_Temperature");
 		sensorMeasurement.setValue(35.6f);
-		sensorMeasurement.setUnit("°C");
+		sensorMeasurement.setUnit("ï¿½C");
 		
 		assertEquals(time, sensorMeasurement.getTime());
 		assertEquals("c8y_Temperature", sensorMeasurement.getType());
 		assertEquals(35.6f, sensorMeasurement.getValue(), 0.00001f);
-		assertEquals("°C", sensorMeasurement.getUnit());
+		assertEquals("ï¿½C", sensorMeasurement.getUnit());
 	}
 }

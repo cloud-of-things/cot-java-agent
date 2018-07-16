@@ -35,7 +35,31 @@ This component contains all helper classes.
 ```
 package com.telekom.cot.device.agent.platform;
 ```
-This service provides a generic interface for other services to communicate with the CoT. It contains the [CoT Java SDK](https://github.com/cloud-of-things/cot-java-rest-sdk) to communicate with the HTTP Rest API of the CoT.
+This service provides a generic interface for other services to communicate with the CoT. 
+
+### PlatformServiceRest
+```
+package com.telekom.cot.device.agent.platform.rest;
+```
+This package contains the configuration and implementation of the agent to use the REST protocol. It contains the [CoT Java SDK](https://github.com/cloud-of-things/cot-java-rest-sdk) to communicate with the HTTP Rest API of the CoT.
+
+### PlatformServiceMqtt
+```
+package com.telekom.cot.device.agent.platform.mqtt;
+```
+This package contains the configuration and implementation of the agent to use the MQTT protocol. It contains the [MQTT SDK https://github.com/cloud-of-things/cot-mqtt-sdk) to communicate with MQTT Broker of the CoT. 
+
+### Alarm
+```
+package com.telekom.cot.device.agent.alarm;
+```
+This package contains the interface and implementation to interact with alarms over the CoT.
+
+### Event
+```
+package com.telekom.cot.device.agent.event;
+```
+This package contains the interface and implementation to interact with events over the CoT.
 
 ### CredentialsService
 ```
@@ -44,7 +68,6 @@ package com.telekom.cot.device.agent.credentials;
 This service is responsible for:
 * Checking if local device credentials are available (in a file called `device-credentials.yaml`).
 * Requesting device credentials using the bootstrap credentials. If a device agent has its first contact with the CoT and no local device credentials are provided, this service requests device credentials. The device can then be accepted in the CoT and once the device credentials are retrieved, the agent is registered in the CoT. The device credentials are saved locally in a file called `device-credentials.yaml`.
-**Note:** Do no delete/overwrite the bootstrap credentials if set!
 
 Dependencies:
 * PlatformService
@@ -146,6 +169,7 @@ Note: For further information according Maven see Apache Maven Project, e.g.
 * [Introduction to the Build Lifecycle](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)
 * [Introduction to Repositories](https://maven.apache.org/guides/introduction/introduction-to-repositories.html)
 
+
 ## Extending
 
 Extending the agent in order to support customer specific devices requires the following steps:
@@ -164,7 +188,7 @@ Two extension examples are included in the project:
 
 Supporting new sensors requires creating a class implementing the interface `SensorDeviceService`.
 
-`TemperatureSensor` is an abstract class implementing `SensorDeviceService` and can be extended to create a custom class. A thread is started in the `start()` method in order to measure sensor values at a fixed rate (defined in agent.yaml: recordReadingsInterval). This thead has the following tasks:
+`TemperatureSensor` is an abstract class implementing `SensorDeviceService` and can be extended to create a custom class. A thread is started in the `start()` method in order to measure sensor values at a fixed rate (defined in agent.yaml: recordReadingsInterval). This thread has the following tasks:
 * Read a measurement
 * Check for alarms
 * Send the measurement to the `SensorService` so that it will be sent to the CoT in another thread
@@ -189,4 +213,3 @@ This interface contains following methods:
 
 An operation handler is included in the project:
 * raspbian: [com.telekom.cot.device.agent.raspian.operation](raspbian/src/main/java/com/telekom/cot/device/agent/raspbian/operation)
-

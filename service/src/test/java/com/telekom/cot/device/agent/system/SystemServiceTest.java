@@ -16,15 +16,15 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
+import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.ConfigurationNotFoundException;
 import com.telekom.cot.device.agent.common.exc.PropertyNotFoundException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.service.AgentServiceProvider;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationManager;
-import com.telekom.cot.device.agent.service.configuration.MobilePropertiesConfiguration;
 import com.telekom.cot.device.agent.system.properties.ConfigurationProperties;
 import com.telekom.cot.device.agent.system.properties.MobileProperties;
+import com.telekom.cot.device.agent.system.properties.MobilePropertiesConfiguration;
 
 public class SystemServiceTest {
 
@@ -87,10 +87,10 @@ public class SystemServiceTest {
 
 		// check logging
 		verify(mockLogger).info(eq("can't get configuration content, create new empty configuration properties"),
-				any(AbstractAgentException.class));
+				any(NullPointerException.class));
 		verify(mockLogger).info(
 				eq("can't get mobile properties from configuration, create new empty mobile properties"),
-				any(AbstractAgentException.class));
+				any(NullPointerException.class));
 	}
 
 	/**

@@ -1,16 +1,12 @@
 package com.telekom.cot.device.agent.sensor.deviceservices;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,18 +15,16 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
+import com.telekom.cot.device.agent.alarm.AlarmService;
 import com.telekom.cot.device.agent.common.AlarmSeverity;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
-import com.telekom.cot.device.agent.common.exc.AgentServiceNotFoundException;
 import com.telekom.cot.device.agent.common.exc.ConfigurationNotFoundException;
 import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
 import com.telekom.cot.device.agent.common.exc.SensorDeviceServiceException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
-import com.telekom.cot.device.agent.sensor.AlarmService;
-import com.telekom.cot.device.agent.sensor.SensorMeasurement;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
+import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
 import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
-import com.telekom.cot.device.agent.service.AgentServiceProvider;
 
 public class TemperatureSensorTest {
 
@@ -42,9 +36,7 @@ public class TemperatureSensorTest {
 	private List<SensorMeasurement> sensorMeasurements;
 
 	@Mock
-	private AgentServiceProvider mockServiceProvider;
-	@Mock
-	private AlarmService mockSensorAlarmService;
+	private AlarmService mockAlarmService;
 	@Mock
 	private SensorService mockSensorService;
 	@Mock
@@ -74,14 +66,11 @@ public class TemperatureSensorTest {
 		sensorMeasurements.add(new SensorMeasurement("c8y_Temperature", 24.9f, "°C"));
 		sensorMeasurements.add(new SensorMeasurement("c8y_Temperature", 28.5f, "°C"));
 
-		// inject configuration, mocked AgentServiceProvider
+		// inject configuration, mocked services
 		InjectionUtil.injectStatic(TemperatureSensor.class, mockLogger);
-		InjectionUtil.inject(temperatureSensor, configuration);
-		InjectionUtil.inject(temperatureSensor, mockServiceProvider);
-
-		// return values of AgentServiceProvider
-		when(mockServiceProvider.getService(AlarmService.class)).thenReturn(mockSensorAlarmService);
-		when(mockServiceProvider.getService(SensorService.class)).thenReturn(mockSensorService);
+		InjectionUtil.inject(temperatureSensor, mockAlarmService);
+        InjectionUtil.inject(temperatureSensor, mockSensorService);
+        InjectionUtil.inject(temperatureSensor, configuration);
 	}
 
 	/**
@@ -106,22 +95,18 @@ public class TemperatureSensorTest {
 	/**
 	 * test method start, getService(AlarmService.class) throws an exception
 	 */
-	@Test(expected = AgentServiceNotFoundException.class)
+	@Test(expected = SensorDeviceServiceException.class)
 	public void testStartNoAlarmService() throws Exception {
-		doThrow(new AgentServiceNotFoundException("service not found")).when(mockServiceProvider)
-				.getService(AlarmService.class);
-
+        InjectionUtil.inject(temperatureSensor, "alarmService", null);
 		temperatureSensor.start();
 	}
 
 	/**
 	 * test method start, getService(SensorService.class) throws an exception
 	 */
-	@Test(expected = AgentServiceNotFoundException.class)
+	@Test(expected = SensorDeviceServiceException.class)
 	public void testStartNoSensorService() throws Exception {
-		doThrow(new AgentServiceNotFoundException("service not found")).when(mockServiceProvider)
-				.getService(SensorService.class);
-
+        InjectionUtil.inject(temperatureSensor, "sensorService", null);
 		temperatureSensor.start();
 	}
 
@@ -152,16 +137,17 @@ public class TemperatureSensorTest {
 			};
 		};
 
-		// inject configuration, mocked AgentServiceProvider
+		// inject configuration, mocked services
 		InjectionUtil.inject(exceptionTemperatureSensor, configuration);
-		InjectionUtil.inject(exceptionTemperatureSensor, mockServiceProvider);
+        InjectionUtil.inject(exceptionTemperatureSensor, mockAlarmService);
+        InjectionUtil.inject(exceptionTemperatureSensor, mockSensorService);
 
 		exceptionTemperatureSensor.start();
-		Thread.sleep(500);
+		TimeUnit.MILLISECONDS.sleep(500);
 		exceptionTemperatureSensor.stop();
 
 		verify(mockSensorService, never()).addMeasurement(any(SensorMeasurement.class));
-		verify(mockSensorAlarmService, never()).createAlarm(any(), any(), any(), any(), any(), any());
+		verify(mockAlarmService, never()).createAlarm(any(), any(), any(), any());
 	}
 
 	/**
@@ -173,11 +159,11 @@ public class TemperatureSensorTest {
 		sensorMeasurements.clear();
 
 		temperatureSensor.start();
-		Thread.sleep(500);
+        TimeUnit.MILLISECONDS.sleep(500);
 		temperatureSensor.stop();
 
 		verify(mockSensorService, never()).addMeasurement(any(SensorMeasurement.class));
-		verify(mockSensorAlarmService, never()).createAlarm(any(), any(), any(), any(), any(), any());
+		verify(mockAlarmService, never()).createAlarm(any(), any(), any(), any());
 	}
 
 	/**
@@ -186,15 +172,15 @@ public class TemperatureSensorTest {
 	 */
 	@Test
 	public void testCheckAlarmsSendAlarmsException() throws Exception {
-		reset(mockSensorAlarmService);
+		reset(mockAlarmService);
 		PlatformServiceException e = new PlatformServiceException("Can't send alarm");
-		doThrow(e).when(mockSensorAlarmService).createAlarm(ALARM_TYPE, ALARM_SEVERITY, ALARM_TEXT, null, null, null);
+		doThrow(e).when(mockAlarmService).createAlarm(ALARM_TYPE, ALARM_SEVERITY, ALARM_TEXT, null);
 
 		sensorMeasurements.clear();
 		sensorMeasurements.add(new SensorMeasurement("c8y_Temperature", 30.0f, "°C"));
 
 		temperatureSensor.start();
-		Thread.sleep(500);
+        TimeUnit.MILLISECONDS.sleep(500);
 		temperatureSensor.stop();
 
 		verify(mockLogger).error("Can't send alarm '{}'({}, {})", ALARM_TEXT, ALARM_TYPE, ALARM_SEVERITY.getValue(), e);
@@ -210,10 +196,10 @@ public class TemperatureSensorTest {
 		sensorMeasurements.add(new SensorMeasurement("c8y_Temperature", 60.0f, "°C"));
 
 		temperatureSensor.start();
-		Thread.sleep(500);
+        TimeUnit.MILLISECONDS.sleep(500);
 		temperatureSensor.stop();
 
-		verify(mockSensorAlarmService, never()).createAlarm(any(), any(), any(), any(), any(), any());
+		verify(mockAlarmService, never()).createAlarm(any(), any(), any(), any());
 	}
 
 	/**
@@ -230,7 +216,7 @@ public class TemperatureSensorTest {
 	@Test
 	public void testComplete() throws Exception {
 		temperatureSensor.start();
-		Thread.sleep(5500);
+        TimeUnit.SECONDS.sleep(6);
 		temperatureSensor.stop();
 
 		// assert that 6 measurements have been pushed to SensorService
@@ -247,7 +233,7 @@ public class TemperatureSensorTest {
 		assertEquals(21.7f, capturedMeasurements.get(5).getValue(), 0.0001f);
 
 		// verify that an alarm has been created for the measurement with value=28.5
-		verify(mockSensorAlarmService, times(1)).createAlarm(ALARM_TYPE, ALARM_SEVERITY, ALARM_TEXT, null, null, null);
+		verify(mockAlarmService, times(1)).createAlarm(ALARM_TYPE, ALARM_SEVERITY, ALARM_TEXT, null);
 	}
 
 	private class TemperatureSensorDeviceServiceImpl extends TemperatureSensor {

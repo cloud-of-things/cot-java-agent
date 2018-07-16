@@ -3,20 +3,16 @@ package com.telekom.cot.device.agent.platform;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import com.telekom.cot.device.agent.common.AlarmSeverity;
+import com.telekom.cot.device.agent.common.configuration.AgentCredentials;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
+import com.telekom.cot.device.agent.platform.objects.AgentManagedObject;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
 import com.telekom.cot.device.agent.service.AgentService;
-import com.telekom.cot.device.agent.service.configuration.AgentCredentials;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationCollection;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
-import com.telekom.m2m.cot.restsdk.identity.ExternalId;
-import com.telekom.m2m.cot.restsdk.inventory.ManagedObject;
-import com.telekom.m2m.cot.restsdk.library.devicemanagement.SupportedOperations;
-import com.telekom.m2m.cot.restsdk.measurement.Measurement;
 
 /**
  * Wraps the CoT SDK functionality.
@@ -24,166 +20,168 @@ import com.telekom.m2m.cot.restsdk.measurement.Measurement;
  */
 public interface PlatformService extends AgentService {
 
-    /**
-     * gets (or generates by template) the external id value
-
-     * @return the external id value
-     * @throws AbstractAgentException 
-     */
+	/**
+	 * gets (or generates by template) the external id value
+	 * 
+	 * @return the external id value
+	 * @throws AbstractAgentException
+	 */
 	public String getExternalIdValue() throws AbstractAgentException;
-	
+
 	/**
 	 * creates a new event at platform with given attributes
-	 * @param time date and time the event occurred
-	 * @param type type of the event
-	 * @param text description of the event
-	 * @param attributes optional attributes 
-	 * @param object optional object to pass
+	 * 
+	 * @param time
+	 *            date and time the event occurred
+	 * @param type
+	 *            type of the event
+	 * @param text
+	 *            description of the event
+	 * @param condition
+	 *            the response template condition
 	 */
-	public void createEvent(Date time, String type, String text, Map<String, Object> attributes, Object object) throws AbstractAgentException;
-	
+	public void createEvent(Date time, String type, String text,String condition) throws AbstractAgentException;
+
 	/**
 	 * creates a new alarm at platform with given attributes
-	 * @param time date and time the alarm occurred
-	 * @param type type of the alarm
-	 * @param severity severity of the alarm
-	 * @param text description of the alarm
-	 * @param status current status of the alarm
-	 * @param attributes optional attributes 
-	 * @param object optional object to pass
-	 * @throws AbstractAgentException
-	 */
-	public void createAlarm(Date time, String type, AlarmSeverity severity, String text, String status,
-					Map<String, Object> attributes, Object object) throws AbstractAgentException;
-
-	/**
-	 * Stores a Measurement.
 	 * 
-	 * @param measurement
-	 * @return the created measurement
+	 * @param time
+	 *            date and time the alarm occurred
+	 * @param type
+	 *            type of the alarm
+	 * @param severity
+	 *            severity of the alarm
+	 * @param text
+	 *            description of the alarm
+	 * @param status
+	 *            current status of the alarm
 	 * @throws AbstractAgentException
 	 */
-	public Measurement createMeasurement(Measurement measurement) throws AbstractAgentException;
+	public void createAlarm(Date time, String type, AlarmSeverity severity, String text, String status) throws AbstractAgentException;
 
 	/**
-	 * Stores a list of Measurements.
+	 * stores a measurement
+	 * 
+	 * @param time
+	 *            date and time the measurement was taken
+	 * @param type
+	 *            type of the measurement
+	 * @param value
+	 *            value of the measurement
+	 * @param unit
+	 *            unit of the measurement
+	 * @throws AbstractAgentException
+	 */
+	public void createMeasurement(Date time, String type, float value, String unit) throws AbstractAgentException;
+
+	/**
+	 * stores a list of measurements
 	 * 
 	 * @param measurements
-	 *            List of measurements to store.
-	 * @return a list of the stored measurements
+	 *            list of measurements to store
 	 * @throws AbstractAgentException
 	 */
-	public List<Measurement> createMeasurements(final List<Measurement> measurements) throws AbstractAgentException;
+	public void createMeasurements(final List<SensorMeasurement> measurements) throws AbstractAgentException;
 
 	/**
 	 * Retrieve the credentials of a certain device.
 	 * 
 	 * @param deviceId
+	 * @param interval
+	 *            in seconds
 	 * @return
 	 * @throws AbstractAgentException
 	 */
-	public AgentCredentials getDeviceCredentials(String deviceId) throws AbstractAgentException;
+	public AgentCredentials getDeviceCredentials(String deviceId, int interval) throws AbstractAgentException;
 
 	/**
-	 * Creates a new Device Request to register new devices.
+	 * Stores an agent managed object in the platform. ID should be empty, will be
+	 * ignored if present.
 	 * 
-	 * @param operation
-	 * @return
-	 */
-	public Operation createNewDevice(Operation operation) throws AbstractAgentException;
-
-	/**
-	 * Stores a ManagedObject in the platform. ID should be empty, will be ignored if present.
-	 * 
-	 * @param managedObject
-	 * @return
+	 * @param agentManagedObject
+	 *            the agent managed object to store in the platform
+	 * @return The ID of the new managed object
 	 * @throws AbstractAgentException
 	 */
-	public ManagedObject createManagedObject(ManagedObject managedObject) throws AbstractAgentException;
+	public String createAgentManagedObject(AgentManagedObject agentManagedObject) throws AbstractAgentException;
 
 	/**
-	 * Store an ExternalId in the platform.
+	 * Stores an ExternalId in the platform.
 	 * 
 	 * @param managedObjectId
-	 * @return the ExternalId
+	 *            ID of the managed object
 	 * @throws AbstractAgentException
 	 */
-	public ExternalId createExternalId(String managedObjectId) throws AbstractAgentException;
+	public void createExternalId(String managedObjectId) throws AbstractAgentException;
 
 	/**
-	 * Retrieves External Identity objects from the CoT.
+	 * Is the external identity object available in the CoT.
 	 * 
-	 * @return
+	 * @return true if the external ID exists, false otherwise.
 	 * @throws AbstractAgentException
 	 */
-	public ExternalId getExternalId() throws AbstractAgentException;
+	public boolean isExternalIdAvailable() throws AbstractAgentException;
 
 	/**
-	 * Retrieves a ManagedObject identified by ID from the platform.
+	 * Retrieves an agent managed object identified by ID from the platform.
 	 * <p>
 	 * Does not set withParents, so no parents will be loaded.
 	 * 
-	 * @return
+	 * @return Agent managed object
 	 * @throws PlatformServiceException
 	 */
-	public ManagedObject getManagedObject() throws AbstractAgentException;
+	public AgentManagedObject getAgentManagedObject() throws AbstractAgentException;
 
 	/**
-	 * Updates the given managed object at platform
+	 * Updates the given agent managed object at platform
 	 * 
-	 * @param managedObject
-	 *            the managed object to update
+	 * @param agentManagedObject
+	 *            the agent managed object to update
 	 * @throws AbstractAgentException
 	 */
-	public void updateManagedObject(ManagedObject managedObject) throws AbstractAgentException;
+	public void updateAgentManagedObject(AgentManagedObject agentManagedObject) throws AbstractAgentException;
 
 	/**
-	 * Update the supported operation of the agent.
+	 * Update the supported operations of the agent.
 	 * 
 	 * @param supportedOperations
-	 *            the supported operations of the agent
+	 *            the supported operation names of the agent
 	 * @throws AbstractAgentException
 	 */
-	public void updateSupportedOperations(SupportedOperations supportedOperations) throws AbstractAgentException;
+	public void updateSupportedOperations(List<String> supportedOperationNames) throws AbstractAgentException;
 
 	/**
-	 * Get the operations.
+	 * get the next pending operation to execute
+	 * @return the next operation to execute or {@code null} if there's no pending operation
+	 * @throws AbstractAgentException if an error occurs
+	 */
+	public Operation getNextPendingOperation() throws AbstractAgentException;
+	
+	/**
+     * get operations with given status
+     * 
+     * @param operationName (optional) name of the operation (fragment)
+     * @param status status of the operations to get
+     * @return a list of operations with given status (maybe empty)
+     * @throws AbstractAgentException if an error occurs
+	 */
+	public List<Operation> getOperations(String operationName, OperationStatus status) throws AbstractAgentException;
+
+	/**
+	 * Update the status of an operation with given id
 	 * 
-	 * @param operationStatus
-	 * @param resultSize
-	 * @return
+	 * @param operationId id of the operation to update
+	 * @param newStatus new status to set
+	 * @throws AbstractAgentException if updating status has not been successful
+	 */
+	public void updateOperationStatus(String operationId, OperationStatus newStatus) throws AbstractAgentException;
+
+	/**
+	 * Download a binary file at given url 
+	 * 
+	 * @param url the URL to download the binary file from 
+	 * @return the binary file as byte array
 	 * @throws AbstractAgentException
 	 */
-	public OperationCollection getOperationCollection(OperationStatus operationStatus, Integer resultSize)
-			throws AbstractAgentException;
-
-    /**
-     * Get the operations.
-     * 
-     * @param operationStatus
-     * @param resultSize
-     * @param fragmentType
-     * @return
-     * @throws AbstractAgentException
-     */
-    public OperationCollection getOperationCollection(String fragmentType, OperationStatus operationStatus, Integer resultSize)
-            throws AbstractAgentException;
-
-	/**
-	 * Update the operation.
-	 * 
-	 * @param externalId
-	 * @param operation
-	 */
-	public void updateOperation(Operation operation) throws AbstractAgentException;
-
-    /**
-     * Download and verify the new agent software.
-     * 
-     * @param url
-     *            the CoT download URL
-     * @return TODO
-     * @return the location path of the new software file
-     */
 	public byte[] downloadBinary(URL url) throws AbstractAgentException;
 }

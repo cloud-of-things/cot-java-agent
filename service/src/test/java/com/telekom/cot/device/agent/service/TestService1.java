@@ -2,7 +2,7 @@ package com.telekom.cot.device.agent.service;
 
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 
-public class TestService1 extends AbstractAgentService {
+public class TestService1 extends AbstractAgentService implements TestServiceIF1{
 
 	private boolean started = false;
 	

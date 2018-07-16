@@ -1,0 +1,12 @@
+agent:
+  services:
+    platformService:
+      hostName: ram.m2m.telekom.com
+      externalIdConfig:
+        valueTemplate: NO_TEMPLATE
+        type: test
+        value: test
+      mqttConfiguration:
+        port: 8883
+        xId: "hallo"
+        timeout: 1

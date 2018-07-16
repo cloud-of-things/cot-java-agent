@@ -6,5 +6,8 @@ target/
 *.iml
 device-credentials.yaml
 agent.pid
+agent.run
+/assembly/
 *.log
 .flattened-pom.xml
+./agent.yaml

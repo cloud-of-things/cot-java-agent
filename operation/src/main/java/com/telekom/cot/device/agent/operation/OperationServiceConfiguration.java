@@ -3,16 +3,14 @@ package com.telekom.cot.device.agent.operation;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationPath;
+import com.telekom.cot.device.agent.common.annotations.ConfigurationPath;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 
 @ConfigurationPath("agent.services.operationService")
 public class OperationServiceConfiguration implements Configuration{
 
     @NotNull @Positive
 	private Integer interval;
-    @NotNull @Positive
-	private Integer resultSize;
     @NotNull @Positive
 	private Integer shutdownTimeout;
     @NotNull @Positive
@@ -24,14 +22,6 @@ public class OperationServiceConfiguration implements Configuration{
 
 	public void setInterval(Integer interval) {
 		this.interval = interval;
-	}
-
-	public Integer getResultSize() {
-		return resultSize;
-	}
-
-	public void setResultSize(Integer resultSize) {
-		this.resultSize = resultSize;
 	}
 
 	public Integer getShutdownTimeout() {
@@ -52,7 +42,7 @@ public class OperationServiceConfiguration implements Configuration{
 
 	@Override
 	public String toString() {
-		return OperationServiceConfiguration.class.getSimpleName() + " [interval=" + interval + ", resultSize=" + resultSize
+		return OperationServiceConfiguration.class.getSimpleName() + " [interval=" + interval
 				+ ", shutdownTimeout=" + shutdownTimeout + ", handlersShutdownTimeout=" + handlersShutdownTimeout + "]";
 	}
 

@@ -3,8 +3,8 @@ package com.telekom.cot.device.agent.demo.sensor;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.telekom.cot.device.agent.common.annotations.ConfigurationPath;
 import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationPath;
 
 @ConfigurationPath("agent.demo.sensors.demoTemperatureSensor")
 public class DemoTemperatureSensorConfiguration extends SensorConfiguration {

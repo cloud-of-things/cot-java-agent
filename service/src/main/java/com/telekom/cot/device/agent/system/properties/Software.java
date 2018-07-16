@@ -1,5 +1,7 @@
 package com.telekom.cot.device.agent.system.properties;
 
+import java.util.Objects;
+
 public class Software {
     private String name;
     private String version;
@@ -42,5 +44,17 @@ public class Software {
     public String toString() {
         return Software.class.getSimpleName() + " [name=" + name + ", version=" + version + ", url=" + url
                 + "]";
+    }
+
+    public boolean equals(Software software, boolean compareUrl) {
+        // check parameter 'software'
+        if (Objects.isNull(software)) {
+            return false;
+        }
+
+        // compare url only if requested (by parameter 'compareUrl')
+        boolean urlEquals = compareUrl ? url.equals(software.getUrl()) : true;
+        
+        return name.equals(software.getName()) && version.equals(software.version) && urlEquals;
     }
 }

@@ -1,41 +1,43 @@
 package com.telekom.cot.device.agent.sensor;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.telekom.cot.device.agent.common.AlarmSeverity;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentServiceNotFoundException;
 import com.telekom.cot.device.agent.common.exc.SensorServiceException;
+import com.telekom.cot.device.agent.common.injection.Inject;
+import com.telekom.cot.device.agent.common.util.AssertionUtil;
 import com.telekom.cot.device.agent.platform.PlatformService;
+import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
 import com.telekom.cot.device.agent.sensor.configuration.SensorServiceConfiguration;
 import com.telekom.cot.device.agent.service.AbstractAgentService;
 import com.telekom.cot.device.agent.service.AgentService;
-import com.telekom.m2m.cot.restsdk.inventory.ManagedObject;
-import com.telekom.m2m.cot.restsdk.measurement.Measurement;
-import com.telekom.m2m.cot.restsdk.measurement.MeasurementReading;
+import com.telekom.cot.device.agent.service.AgentServiceProvider;
 
-public class SensorServiceImpl extends AbstractAgentService implements SensorService, AlarmService, EventService {
+public class SensorServiceImpl extends AbstractAgentService implements SensorService {
 
 	private static final long MILLISECONDS_PER_SECOND = 1000l;
 
 	/** the logger. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(SensorServiceImpl.class);
 
+	@Inject
 	private SensorServiceConfiguration configuration;
+
+	@Inject
+	private AgentServiceProvider serviceProvider;
+	
+    @Inject
 	private PlatformService platformService;
-	private ManagedObject managedObject;
 
 	/** the list of measurements pushed by all registered SensorDeviceServices */
-	private List<SensorMeasurement> measurements = new ArrayList<>();
+	private final List<SensorMeasurement> measurements = new ArrayList<>();
 
 	/** the list of measurements that could not be sent */
 	private List<SensorMeasurement> measurementsNotSent = new ArrayList<>();
@@ -63,13 +65,11 @@ public class SensorServiceImpl extends AbstractAgentService implements SensorSer
 
 		LOGGER.debug("start " + this.getClass().getSimpleName());
 
-		// get configuration and instance of PlatformService
-		configuration = getConfigurationManager().getConfiguration(SensorServiceConfiguration.class);
-		platformService = getService(PlatformService.class);
+        AssertionUtil.assertNotNull(configuration, SensorServiceException.class, LOGGER, "no configuration given");
+        AssertionUtil.assertNotNull(platformService, SensorServiceException.class, LOGGER, "no platform service given");
 
 		// get fixed rate (in seconds) at which measurements are sent to the platform
 		sendInterval = configuration.getSendInterval();
-		managedObject = platformService.getManagedObject();
 
 		// start the thread that sends the measurements to the platform
 		running.set(true);
@@ -98,8 +98,8 @@ public class SensorServiceImpl extends AbstractAgentService implements SensorSer
 			// Wait until the worker thread finishes sending the current measurements
 			try {
 				worker.join();
-			} catch (InterruptedException e) {
-				throw new SensorServiceException("The SensorService thread has been interrupted");
+			} catch (Exception e) {
+				throw new SensorServiceException("The SensorService thread has been interrupted", e);
 			}
 
 			// Send measurements already collected by the SensorDeviceServices
@@ -113,6 +113,13 @@ public class SensorServiceImpl extends AbstractAgentService implements SensorSer
 	public void addMeasurement(SensorMeasurement sensorMeasurement) {
 		synchronized (measurements) {
 			measurements.add(sensorMeasurement);
+		}
+	}
+
+	@Override
+	public void addMeasurements(List<SensorMeasurement> sensorMeasurements) {
+		synchronized (measurements) {
+			this.measurements.addAll(sensorMeasurements);
 		}
 	}
 
@@ -133,9 +140,9 @@ public class SensorServiceImpl extends AbstractAgentService implements SensorSer
 
 		List<SensorMeasurement> measurementsCopy;
 		synchronized (measurements) {
-			measurementsCopy = new ArrayList<SensorMeasurement>(measurements);
+			measurementsCopy = new ArrayList<>(measurements);
 			measurementsCopy.addAll(measurementsNotSent);
-			measurements = new ArrayList<>();
+			measurements.clear();
 			measurementsNotSent = new ArrayList<>();
 		}
 
@@ -144,18 +151,9 @@ public class SensorServiceImpl extends AbstractAgentService implements SensorSer
 			return;
 		}
 
-		List<Measurement> platformMeasurements = measurementsCopy.stream().map(m -> {
-			Measurement measurement = new Measurement();
-			measurement.setTime(m.getTime());
-			measurement.setType(m.getType());
-			measurement.set(m.getType(), new SensorMeasurementReading(m.getValue(), m.getUnit()));
-			measurement.setSource(managedObject);
-			return measurement;
-		}).collect(Collectors.toList());
-
 		try {
-			LOGGER.debug("Send {} measurements", platformMeasurements.size());
-			platformService.createMeasurements(platformMeasurements);
+			LOGGER.debug("Send {} measurements", measurementsCopy.size());
+			platformService.createMeasurements(measurementsCopy);
 		} catch (AbstractAgentException exception) {
 			LOGGER.error("Couldn't send measurements", exception);
 			measurementsNotSent.addAll(measurementsCopy);
@@ -175,26 +173,6 @@ public class SensorServiceImpl extends AbstractAgentService implements SensorSer
 	}
 
 	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void createEvent(String type, String text, Map<String, Object> attributes, Object object)
-			throws AbstractAgentException {
-		LOGGER.debug("create and send event of type '{}' with text '{}'", type, text);
-		platformService.createEvent(new Date(), type, text, attributes, object);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void createAlarm(String type, AlarmSeverity severity, String text, String status,
-			Map<String, Object> attributes, Object object) throws AbstractAgentException {
-		LOGGER.debug("create and send alarm of type {} with text {} and severity {}", type, text, severity.getValue());
-		platformService.createAlarm(new Date(), type, severity, text, status, attributes, object);
-	}
-
-	/**
 	 * starts all registered sensor device services.
 	 * 
 	 * @throws AbstractAgentException
@@ -204,10 +182,10 @@ public class SensorServiceImpl extends AbstractAgentService implements SensorSer
 
 		List<SensorDeviceService> foundServices;
 		try {
-			foundServices = getServices(SensorDeviceService.class);
+			foundServices = serviceProvider.getServices(SensorDeviceService.class);
 		} catch (AgentServiceNotFoundException e) {
 			LOGGER.warn("No sensor service found", e);
-			foundServices = new ArrayList<SensorDeviceService>();
+			foundServices = new ArrayList<>();
 		}
 
 		for (SensorDeviceService service : foundServices) {
@@ -232,18 +210,6 @@ public class SensorServiceImpl extends AbstractAgentService implements SensorSer
 		}
 		for (AgentService sensorService : sensorServices) {
 			sensorService.stop();
-		}
-	}
-
-	/**
-	 * nested class for measurement readings
-	 */
-	private class SensorMeasurementReading {
-		@SuppressWarnings("unused")
-		MeasurementReading sensorValue;
-
-		SensorMeasurementReading(float value, String unit) {
-			sensorValue = new MeasurementReading(value, unit);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
-adduser --group --system --no-create-home --shell "/bin/false" --disabled-login cotagent
+adduser --group --system --shell "/bin/false" --disabled-login cotagent
 chown -R cotagent:cotagent /opt/cot-java-agent/
 chmod +x /opt/cot-java-agent/startup.sh
 

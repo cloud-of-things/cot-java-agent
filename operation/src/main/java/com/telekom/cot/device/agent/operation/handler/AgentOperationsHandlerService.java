@@ -6,30 +6,45 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.telekom.cot.device.agent.common.configuration.Configuration;
+import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
+import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
+import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
+import com.telekom.cot.device.agent.common.injection.Inject;
+import com.telekom.cot.device.agent.common.util.AssertionUtil;
 import com.telekom.cot.device.agent.inventory.InventoryService;
 import com.telekom.cot.device.agent.operation.softwareupdate.SoftwareUpdateExecute;
 import com.telekom.cot.device.agent.operation.softwareupdate.SoftwareUpdateExecuteCallback;
 import com.telekom.cot.device.agent.platform.PlatformService;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
+import com.telekom.cot.device.agent.service.AbstractAgentService;
 import com.telekom.cot.device.agent.system.SystemService;
 import com.telekom.cot.device.agent.system.properties.ConfigurationProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
-import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
-import com.telekom.cot.device.agent.common.util.AssertionUtil;
-import com.telekom.cot.device.agent.service.AbstractAgentService;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
 
 public class AgentOperationsHandlerService extends AbstractAgentService implements OperationsHandlerService {
 
     /** The logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(AgentOperationsHandlerService.class);
 
-    private AgentOperationsHandlerConfiguration config;
-
+    @Inject
+    private AgentOperationsHandlerConfiguration configuration;
+    
+    @Inject
+    private ConfigurationManager configurationManager;
+    
+    @Inject
+    private PlatformService platformService;
+    
+    @Inject
+    private SystemService systemService;
+    
+    @Inject
+    private InventoryService inventoryService;
+    
     /**
      * The operation type is the key to executor implementation.
      */
@@ -64,32 +79,26 @@ public class AgentOperationsHandlerService extends AbstractAgentService implemen
     }
     
     @Override
-    public void start() throws AbstractAgentException {
-        super.start();
-        config = getConfigurationManager().getConfiguration(AgentOperationsHandlerConfiguration.class);
-    }
-
-    @Override
     public OperationStatus execute(Operation operation) throws AbstractAgentException {
         LOGGER.info("start operation executing");
         // check the operation
         AssertionUtil.assertNotNull(operation, AgentOperationHandlerException.class, LOGGER, "operation is required");
-        AssertionUtil.assertNotEmpty(operation.getAttributes(), AgentOperationHandlerException.class, LOGGER,
+        AssertionUtil.assertNotEmpty(operation.getProperties(), AgentOperationHandlerException.class, LOGGER,
                 "operation has no attributes to identify the executor");
         // exist type
-        OperationType operationType = OperationType.findByAttributes(operation.getAttributes().keySet());
+        OperationType operationType = OperationType.findByAttributes(operation.getProperties().keySet());
         AssertionUtil.assertNotNull(operationType, AgentOperationHandlerException.class, LOGGER,
                 "did not found the operation type");
         // execute
         switch (operationType) {
         case C8Y_TEST_OPERATION:
-            return handleDemoOperation(operation);
+            return handleTestOperation(operation);
             
         case C8Y_CONFIGURATION:
             return handleConfigurationOperation(operation);
 
         case C8Y_SOFTWARELIST:
-            return handleSoftwarelistOperation(operation, System.getProperty("user.dir"), Runtime.getRuntime());
+            return handleSoftwarelistOperation(operation);
 
         default:
             LOGGER.error("could not execute operation");
@@ -102,10 +111,10 @@ public class AgentOperationsHandlerService extends AbstractAgentService implemen
         return OperationType.attributes().toArray(new String[] {});
     }
 
-    private OperationStatus handleDemoOperation(Operation operation) throws AbstractAgentException {
+    private OperationStatus handleTestOperation(Operation operation) throws AbstractAgentException {
         OperationExecute<? extends Configuration> execute = OperationExecuteBuilder.create(operation)
                         .setExecutorClass(TestOperationExecute.class)
-                        .setConfiguration(config.getTestOperation()).build();
+                        .setConfiguration(configuration.getTestOperation()).build();
         
         return execute.perform();
     }
@@ -116,16 +125,15 @@ public class AgentOperationsHandlerService extends AbstractAgentService implemen
                         .setCallback(new OperationExecuteCallback<String>() {
                             public void finished(String configuration) throws AbstractAgentException {
                                 LOGGER.info("update agent configuration {}", configuration);
-                                getConfigurationManager().updateConfiguration(configuration);
+                                configurationManager.updateConfiguration(configuration);
 
                                 // update the managedObjects c8y_Configuration Fragment
-                                SystemService systemService = getService(SystemService.class);
                                 ConfigurationProperties configurationProperties = systemService.getProperties(ConfigurationProperties.class);
                                 if (Objects.nonNull(configurationProperties)) {
                                     configurationProperties.setConfig(configuration);
                                 }
                                 
-                                getService(InventoryService.class).updateDevice();
+                                inventoryService.updateDevice();
                             }
                         })
                         .build();
@@ -133,11 +141,11 @@ public class AgentOperationsHandlerService extends AbstractAgentService implemen
         return execute.perform();
     }
 
-    protected OperationStatus handleSoftwarelistOperation(Operation operation,String agentWorkingDir, Runtime runtime) throws AbstractAgentException {
+    protected OperationStatus handleSoftwarelistOperation(Operation operation) throws AbstractAgentException {
         OperationExecute<? extends Configuration> execute = OperationExecuteBuilder.create(operation)
                         .setExecutorClass(SoftwareUpdateExecute.class)
-                        .setConfiguration(config.getSoftwareUpdate())
-                        .setCallback(new SoftwareUpdateExecuteCallback(getService(PlatformService.class), config.getSoftwareUpdate().getChecksumAlgorithm()))   
+                        .setConfiguration(configuration.getSoftwareUpdate())
+                        .setCallback(new SoftwareUpdateExecuteCallback(platformService, configuration.getSoftwareUpdate().getChecksumAlgorithm()))   
                         .build();
 
         return execute.perform();

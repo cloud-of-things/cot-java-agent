@@ -4,11 +4,11 @@ import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
 import com.telekom.cot.device.agent.operation.handler.AbstractOperationExecute;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 
 public class RestartOperationExecute extends AbstractOperationExecute<Configuration> {
 

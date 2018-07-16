@@ -1,28 +1,29 @@
 package com.telekom.cot.device.agent.operation;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import com.telekom.cot.device.agent.common.util.ValidationUtil;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.telekom.cot.device.agent.common.util.ValidationUtil;
 
 public class OperationServiceConfigurationTest {
 
 	OperationServiceConfiguration operationServiceConfiguration;
 
 	private final Integer interval = 1;
-	private final Integer resultSize = 2;
-	private final Integer shutdownTimeout = 3;
-	private final Integer handlersShutdownTimeout = 4;
+	private final Integer shutdownTimeout = 2;
+	private final Integer handlersShutdownTimeout = 3;
 	
-	private final String expectedToString = "OperationServiceConfiguration [interval=1, resultSize=2, shutdownTimeout=3, handlersShutdownTimeout=4]";
+	private final String expectedToString = "OperationServiceConfiguration [interval=1, shutdownTimeout=2, handlersShutdownTimeout=3]";
 
 
 	@Before
 	public void setup() {
 		operationServiceConfiguration = new OperationServiceConfiguration();
 		operationServiceConfiguration.setInterval(interval);
-		operationServiceConfiguration.setResultSize(resultSize);
 		operationServiceConfiguration.setShutdownTimeout(shutdownTimeout);
 		operationServiceConfiguration.setHandlersShutdownTimeout(handlersShutdownTimeout);
 	}
@@ -36,12 +37,6 @@ public class OperationServiceConfigurationTest {
 	@Test
 	public void nullIntervalTest() {
 		operationServiceConfiguration.setInterval(null);
-		assertFalse(ValidationUtil.isValid(operationServiceConfiguration));
-	}
-
-	@Test
-	public void nullResultSizeTest() {
-		operationServiceConfiguration.setResultSize(null);
 		assertFalse(ValidationUtil.isValid(operationServiceConfiguration));
 	}
 
@@ -63,10 +58,6 @@ public class OperationServiceConfigurationTest {
 		operationServiceConfiguration.setInterval(-1);
 		assertFalse(ValidationUtil.isValid(operationServiceConfiguration));
 
-		// result size negative
-		operationServiceConfiguration.setResultSize(-1);
-		assertFalse(ValidationUtil.isValid(operationServiceConfiguration));
-
 		// shutdownTimeout negative
 		operationServiceConfiguration.setShutdownTimeout(-1);
 		assertFalse(ValidationUtil.isValid(operationServiceConfiguration));
@@ -79,7 +70,6 @@ public class OperationServiceConfigurationTest {
 	@Test
 	public void testGettersAndSetters() {
 		assertEquals(interval, operationServiceConfiguration.getInterval());
-		assertEquals(resultSize, operationServiceConfiguration.getResultSize());
 		assertEquals(shutdownTimeout, operationServiceConfiguration.getShutdownTimeout());
 		assertEquals(handlersShutdownTimeout, operationServiceConfiguration.getHandlersShutdownTimeout());
 	}

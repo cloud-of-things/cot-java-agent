@@ -3,9 +3,9 @@ package com.telekom.cot.device.agent.operation.handler;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.telekom.cot.device.agent.common.annotations.ConfigurationPath;
+import com.telekom.cot.device.agent.common.configuration.Configuration;
 import com.telekom.cot.device.agent.operation.softwareupdate.SoftwareUpdateConfig;
-import com.telekom.cot.device.agent.service.configuration.Configuration;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationPath;
 
 @ConfigurationPath("agent.operations")
 public class AgentOperationsHandlerConfiguration implements Configuration {

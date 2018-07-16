@@ -1,7 +1,12 @@
 package com.telekom.cot.device.agent.app;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -9,10 +14,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
+import com.telekom.cot.device.agent.alarm.AlarmService;
+import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentShutdownException;
 import com.telekom.cot.device.agent.common.exc.ConfigurationNotFoundException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
+import com.telekom.cot.device.agent.event.EventService;
 import com.telekom.cot.device.agent.inventory.InventoryService;
 import com.telekom.cot.device.agent.operation.OperationService;
 import com.telekom.cot.device.agent.operation.OperationServiceConfiguration;
@@ -20,7 +28,6 @@ import com.telekom.cot.device.agent.platform.PlatformService;
 import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.service.AgentServiceProvider;
 import com.telekom.cot.device.agent.service.AgentServiceShutdownHelper;
-import com.telekom.cot.device.agent.service.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.system.SystemService;
 
 
@@ -101,6 +108,31 @@ public class AppShutdownTest {
         
         verify(mockLogger).error("can't shut down sensor service and all sensor device services", exception);
     }
+    
+    /**
+     * test run, shutdown AlarmService throws exception
+     */
+    @Test
+    public void testRunShutdownAlarmServiceException() throws Exception {
+        doThrow(exception).when(mockShutdownHelper).shutdownService(AlarmService.class, SHUTDOWN_TIMEOUT, true);
+        appShutdown.run();
+        
+        verify(mockLogger).info("shut down sensor service and all sensor device services successfully");
+        verify(mockLogger).error("can't shut down alarm service", exception);
+    }
+    
+    /**
+     * test run, shutdown EventService throws exception
+     */
+    @Test
+    public void testRunShutdownEventServiceException() throws Exception {
+        doThrow(exception).when(mockShutdownHelper).shutdownService(EventService.class, SHUTDOWN_TIMEOUT, true);
+        appShutdown.run();
+        
+        verify(mockLogger).info("shut down sensor service and all sensor device services successfully");
+        verify(mockLogger).info("shut down event alarm successfully");
+        verify(mockLogger).error("can't shut down event service", exception);
+    }
 
     /**
      * test run, OperationServiceConfiguration not found
@@ -112,6 +144,8 @@ public class AppShutdownTest {
         appShutdown.run();
         
         verify(mockLogger).info("shut down sensor service and all sensor device services successfully");
+        verify(mockLogger).info("shut down event alarm successfully");
+        verify(mockLogger).info("shut down event service successfully");
         verify(mockLogger).warn("can't get shutdown timeout from operation service configuration, use common timeout", e);
     }
 
@@ -124,6 +158,8 @@ public class AppShutdownTest {
         appShutdown.run();
         
         verify(mockLogger).info("shut down sensor service and all sensor device services successfully");
+        verify(mockLogger).info("shut down event alarm successfully");
+        verify(mockLogger).info("shut down event service successfully");
         verify(mockLogger, never()).warn(eq("can't get shutdown timeout from operation service configuration, use common timeout"), any(AbstractAgentException.class));
         verify(mockLogger).error("can't shut down operation service and all operation handlers", exception);
     }
@@ -137,6 +173,8 @@ public class AppShutdownTest {
         appShutdown.run();
         
         verify(mockLogger).info("shut down sensor service and all sensor device services successfully");
+        verify(mockLogger).info("shut down event alarm successfully");
+        verify(mockLogger).info("shut down event service successfully");
         verify(mockLogger).info("shut down operation service and all operation handlers successfully");
         verify(mockLogger).error("can't shut down inventory service", exception);
     }
@@ -150,6 +188,8 @@ public class AppShutdownTest {
         appShutdown.run();
         
         verify(mockLogger).info("shut down sensor service and all sensor device services successfully");
+        verify(mockLogger).info("shut down event alarm successfully");
+        verify(mockLogger).info("shut down event service successfully");
         verify(mockLogger).info("shut down operation service and all operation handlers successfully");
         verify(mockLogger).info("shut down inventory service successfully");
         verify(mockLogger).error("can't shut down platform service", exception);
@@ -164,6 +204,8 @@ public class AppShutdownTest {
         appShutdown.run();
         
         verify(mockLogger).info("shut down sensor service and all sensor device services successfully");
+        verify(mockLogger).info("shut down event alarm successfully");
+        verify(mockLogger).info("shut down event service successfully");
         verify(mockLogger).info("shut down operation service and all operation handlers successfully");
         verify(mockLogger).info("shut down inventory service successfully");
         verify(mockLogger).info("shut down platform service successfully");
@@ -178,6 +220,8 @@ public class AppShutdownTest {
         appShutdown.run();
         
         verify(mockLogger).info("shut down sensor service and all sensor device services successfully");
+        verify(mockLogger).info("shut down event alarm successfully");
+        verify(mockLogger).info("shut down event service successfully");
         verify(mockLogger).info("shut down operation service and all operation handlers successfully");
         verify(mockLogger).info("shut down inventory service successfully");
         verify(mockLogger).info("shut down platform service successfully");

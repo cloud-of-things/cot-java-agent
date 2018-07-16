@@ -7,11 +7,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.telekom.cot.device.agent.alarm.AlarmService;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
-import com.telekom.cot.device.agent.common.exc.SensorServiceException;
-import com.telekom.cot.device.agent.sensor.AlarmService;
+import com.telekom.cot.device.agent.common.exc.SensorDeviceServiceException;
+import com.telekom.cot.device.agent.common.injection.Inject;
+import com.telekom.cot.device.agent.common.util.AssertionUtil;
+import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
 import com.telekom.cot.device.agent.sensor.SensorDeviceService;
-import com.telekom.cot.device.agent.sensor.SensorMeasurement;
 import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
 import com.telekom.cot.device.agent.service.AbstractAgentService;
@@ -32,7 +34,9 @@ public abstract class TemperatureSensor extends AbstractAgentService implements 
 	private Thread worker;
 
 	private SensorConfiguration configuration;
+    @Inject
 	private AlarmService alarmService;
+    @Inject
 	private SensorService sensorService;
 
 	/** the fixed rate at which values are measured */
@@ -61,11 +65,8 @@ public abstract class TemperatureSensor extends AbstractAgentService implements 
 		// get temperature sensor configuration (from implementing class)
 		configuration = getSensorConfiguration();
 
-		// get reference to the SensorAlarmService in order to send alarms to CoT
-		alarmService = getService(AlarmService.class);
-
-		// get reference to the SensorService in order to push measurements
-		sensorService = getService(SensorService.class);
+        AssertionUtil.assertNotNull(alarmService, SensorDeviceServiceException.class, LOGGER, "no alarm service given");
+        AssertionUtil.assertNotNull(sensorService, SensorDeviceServiceException.class, LOGGER, "no sensor service given");
 
 		// get fixed rate (in seconds) at which values (e.g. cpu temperature) are
 		// measured
@@ -93,8 +94,8 @@ public abstract class TemperatureSensor extends AbstractAgentService implements 
 			// Wait until the worker thread finishes recording the current reading
 			try {
 				worker.join();
-			} catch (InterruptedException e) {
-				throw new SensorServiceException("The SensorDeviceService thread has been interrupted");
+			} catch (Exception e) {
+				throw new SensorDeviceServiceException("The SensorDeviceService thread has been interrupted");
 			}
 
 			super.stop();
@@ -111,11 +112,12 @@ public abstract class TemperatureSensor extends AbstractAgentService implements 
 
 				if (!Objects.isNull(sensorMeasurement)) {
 					// Send an alarm if the measurement meets a defined criteria
-					// This is done in another thread so that the record reading is not blocked 
+					// This is done in another thread so that the record reading is not blocked
 					Thread thread = new Thread(() -> checkAlarms(sensorMeasurement));
 					thread.start();
 
-					// Push the measurement to the sensor service - the sensor service sends all pushed measurements regularly
+					// Push the measurement to the sensor service - the sensor service sends all
+					// pushed measurements regularly
 					sensorService.addMeasurement(sensorMeasurement);
 				}
 			} catch (AbstractAgentException exception) {
@@ -163,7 +165,7 @@ public abstract class TemperatureSensor extends AbstractAgentService implements 
 					alarmConfig.getSeverity().getValue());
 
 			try {
-				alarmService.createAlarm(alarmConfig.getType(), alarmConfig.getSeverity(), alarmText, null, null, null);
+				alarmService.createAlarm(alarmConfig.getType(), alarmConfig.getSeverity(), alarmText, null);
 			} catch (Exception e) {
 				LOGGER.error("Can't send alarm '{}'({}, {})", alarmText, alarmConfig.getType(),
 						alarmConfig.getSeverity().getValue(), e);

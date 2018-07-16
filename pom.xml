@@ -4,9 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<cot.agent.version>0.10.2</cot.agent.version>
+		<cot.agent.version>0.18.0</cot.agent.version>
 		<cot.agent.version.demo>${cot.agent.version}</cot.agent.version.demo>
-		<cot.sdk.version>1.0.2</cot.sdk.version>
+		<cot.sdk.version>1.0.5</cot.sdk.version>
 	</properties>
 
 	<!-- $mvn clean install -P update -->
@@ -32,10 +32,21 @@
 		<module>operation</module>
 		<module>inventory</module>
 		<module>sensor</module>
+		<module>alarm</module>
+		<module>event</module>
 		<module>platform</module>
+		<module>platform-mqtt</module>
+		<module>platform-rest</module>
 		<module>raspbian</module>
 		<module>demo</module>
 	</modules>
+
+	<repositories>
+		<repository>
+        	<id>local-maven-repository</id>
+        	<url>file:///${project.basedir}/../repo</url>
+        </repository>
+	</repositories>
 
 	<dependencies>
 		<!-- Logging -->
@@ -142,27 +153,63 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.7.0</version>
+					<configuration>
+						<source>1.8</source>
+						<target>1.8</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.0.2</version>
+					<configuration>
+						<archive>
+							<manifest>
+								<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							</manifest>
+						</archive>
+					</configuration>
+				</plugin>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.mojo
+										</groupId>
+										<artifactId>
+											flatten-maven-plugin
+										</artifactId>
+										<versionRange>
+											[1.0.1,)
+										</versionRange>
+										<goals>
+											<goal>flatten</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 </project>

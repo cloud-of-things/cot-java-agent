@@ -1,6 +1,8 @@
 package com.telekom.cot.device.agent.raspbian.operation;
 
-import static com.telekom.cot.device.agent.common.util.AssertionUtil.*;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.assertNotEmpty;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.assertNotNull;
+import static com.telekom.cot.device.agent.common.util.AssertionUtil.createExceptionAndLog;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,9 +16,9 @@ import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
 import com.telekom.cot.device.agent.operation.handler.OperationExecuteBuilder;
 import com.telekom.cot.device.agent.operation.handler.OperationsHandlerService;
+import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.service.AbstractAgentService;
-import com.telekom.m2m.cot.restsdk.devicecontrol.Operation;
-import com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus;
 
 public class RaspbianOperationsHandler extends AbstractAgentService implements OperationsHandlerService {
 
@@ -60,12 +62,12 @@ public class RaspbianOperationsHandler extends AbstractAgentService implements O
         
         // check the operation
         assertNotNull(operation, AgentOperationHandlerException.class, LOGGER, "operation is required");
-        assertNotEmpty(operation.getAttributes(), AgentOperationHandlerException.class, LOGGER,
+        assertNotEmpty(operation.getProperties(), AgentOperationHandlerException.class, LOGGER,
                 "operation has no attributes to identify the executor");
         
         // get and check operation type
         try {
-            OperationType.findByAttributes(operation.getAttributes().keySet());
+            OperationType.findByAttributes(operation.getProperties().keySet());
         } catch(Exception e) {
             throw createExceptionAndLog(AgentOperationHandlerException.class, LOGGER, "did not found the operation type", e);
         }

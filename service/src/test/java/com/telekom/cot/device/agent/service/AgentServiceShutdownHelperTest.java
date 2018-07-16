@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentServiceNotFoundException;
 import com.telekom.cot.device.agent.common.exc.AgentShutdownException;
-import com.telekom.cot.device.agent.common.util.InjectionUtil;
+import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 
 public class AgentServiceShutdownHelperTest {
 

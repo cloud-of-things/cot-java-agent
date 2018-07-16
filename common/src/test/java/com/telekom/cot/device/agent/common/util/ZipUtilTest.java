@@ -1,6 +1,6 @@
 package com.telekom.cot.device.agent.common.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
 import java.nio.file.Files;
