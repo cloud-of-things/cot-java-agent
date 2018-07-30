@@ -16,7 +16,7 @@ The Java agent contains following functionalities:
 * Update configuration
 * Update software (only available using HTTP REST communication)
 
-_Current version is: 0.18.0_
+_Current version is: 0.18.1_
 
 ## Prerequisites  
 
@@ -194,6 +194,10 @@ Developers can find further technical information in the [DEVELOPER.md](DEVELOPE
 ## Release Notes
 
 Short information about what has changed between releases.
+
+### Release 0.18.1
+
+* Updated CoT MQTT SDK to version 1.0.1
 
 ### Release 0.18.0
 
