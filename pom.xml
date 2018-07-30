@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<cot.agent.version>0.18.0</cot.agent.version>
+		<cot.agent.version>0.18.1</cot.agent.version>
 		<cot.agent.version.demo>${cot.agent.version}</cot.agent.version.demo>
 		<cot.sdk.version>1.0.5</cot.sdk.version>
 	</properties>
@@ -40,13 +40,6 @@
 		<module>raspbian</module>
 		<module>demo</module>
 	</modules>
-
-	<repositories>
-		<repository>
-        	<id>local-maven-repository</id>
-        	<url>file:///${project.basedir}/../repo</url>
-        </repository>
-	</repositories>
 
 	<dependencies>
 		<!-- Logging -->

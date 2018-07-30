@@ -29,9 +29,9 @@
 			<version>${cot.agent.version}</version>
 		</dependency>
 		<dependency>
-            <groupId>de.tarent.telekom.cot</groupId>
-            <artifactId>nbiot-mqtt</artifactId>
-            <version>0.5.3</version>
+            <groupId>com.telekom.m2m.cot</groupId>
+            <artifactId>cot-mqtt-sdk</artifactId>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
