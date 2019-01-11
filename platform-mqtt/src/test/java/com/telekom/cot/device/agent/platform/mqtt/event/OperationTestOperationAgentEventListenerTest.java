@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import com.telekom.cot.device.agent.platform.mqtt.PublishedValues;
 import com.telekom.cot.device.agent.platform.mqtt.TemplateId;
-import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
 
 public class OperationTestOperationAgentEventListenerTest {
 

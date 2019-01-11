@@ -6,11 +6,12 @@ import org.slf4j.LoggerFactory;
 import com.telekom.cot.device.agent.alarm.AlarmService;
 import com.telekom.cot.device.agent.common.configuration.AgentCredentialsManager;
 import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
+import com.telekom.cot.device.agent.device.DeviceService;
 import com.telekom.cot.device.agent.event.EventService;
 import com.telekom.cot.device.agent.inventory.InventoryService;
+import com.telekom.cot.device.agent.measurement.MeasurementService;
 import com.telekom.cot.device.agent.operation.OperationService;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.service.AgentServiceManager;
 import com.telekom.cot.device.agent.system.SystemService;
 
@@ -59,7 +60,8 @@ public final class AppBootstrap {
         steps.startService(OperationService.class);
         steps.startService(EventService.class);
         steps.startService(AlarmService.class);
-        steps.startService(SensorService.class);
+        steps.startService(DeviceService.class);
+        steps.startService(MeasurementService.class);
 
         steps.sendEventAgentStarted();
 

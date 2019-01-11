@@ -34,7 +34,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.telekom.cot</groupId>
-			<artifactId>device-agent-sensor</artifactId>
+			<artifactId>device-agent-measurement</artifactId>
 			<version>${cot.agent.version}</version>
 		</dependency>
 		<dependency>
@@ -45,6 +45,11 @@
 		<dependency>
 			<groupId>com.telekom.cot</groupId>
 			<artifactId>device-agent-operation</artifactId>
+			<version>${cot.agent.version}</version>
+		</dependency>
+			<dependency>
+			<groupId>com.telekom.cot</groupId>
+			<artifactId>device-agent-device</artifactId>
 			<version>${cot.agent.version}</version>
 		</dependency>
 	</dependencies>

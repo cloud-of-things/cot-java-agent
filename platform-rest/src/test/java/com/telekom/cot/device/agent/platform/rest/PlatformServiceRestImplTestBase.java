@@ -16,7 +16,7 @@ import com.telekom.cot.device.agent.common.configuration.AgentCredentials;
 import com.telekom.cot.device.agent.common.configuration.AgentCredentialsManager;
 import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.platform.PlatformServiceConfiguration.ExternalIdConfig;
-import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
 import com.telekom.cot.device.agent.platform.rest.PlatformServiceRestConfiguration.RestConfiguration;
 import com.telekom.cot.device.agent.service.AgentServiceProvider;
 import com.telekom.m2m.cot.restsdk.CloudOfThingsPlatform;
@@ -62,7 +62,7 @@ class PlatformServiceRestImplTestBase {
 	@Mock protected CoTPlatformBuilder mockBuilder;
 	@Mock protected com.telekom.m2m.cot.restsdk.devicecontrol.OperationCollection mockOperationCollection;	
 	@Mock protected com.telekom.m2m.cot.restsdk.devicecontrol.Operation mockOperation;
-    @Mock protected ConcurrentLinkedQueue<com.telekom.cot.device.agent.platform.objects.Operation> mockConcurrentLinkedQueue;
+    @Mock protected ConcurrentLinkedQueue<Operation> mockConcurrentLinkedQueue;
     @Mock protected Operation mockPendingOperation;
 
 	protected PlatformServiceRestConfiguration platformServiceConfig = new PlatformServiceRestConfiguration();

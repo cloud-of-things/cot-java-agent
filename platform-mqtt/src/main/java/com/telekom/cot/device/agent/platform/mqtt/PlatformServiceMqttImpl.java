@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,9 +50,10 @@ import com.telekom.cot.device.agent.platform.objects.AgentHardware;
 import com.telekom.cot.device.agent.platform.objects.AgentManagedObject;
 import com.telekom.cot.device.agent.platform.objects.AgentMobile;
 import com.telekom.cot.device.agent.platform.objects.AgentSoftwareList.Software;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.operation.OperationFactory;
 import com.telekom.cot.device.agent.platform.objects.ManagedObject;
-import com.telekom.cot.device.agent.platform.objects.Operation;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
 import com.telekom.cot.device.agent.service.AbstractAgentService;
 import com.telekom.cot.device.agent.system.SystemService;
@@ -409,7 +411,9 @@ public class PlatformServiceMqttImpl extends AbstractAgentService implements Pla
 
     @Override
     public void updateSupportedOperations(List<String> supportedOperationNames) throws AbstractAgentException {
-        LOGGER.info("updating supported operations: ({})", supportedOperationNames);
+        assertNotNull(supportedOperationNames, "no supported operations given");
+        LOGGER.info("update supported operations: {}", supportedOperationNames);
+
         // update inventory fragment
         String xid = platformServiceMqttConfiguration.getMqttConfiguration().getxId();
         String template = SmartRestUtil
@@ -548,12 +552,17 @@ public class PlatformServiceMqttImpl extends AbstractAgentService implements Pla
      * {@inheritDoc}
      */
     @Override
-    public List<Operation> getOperations(String fragmentType, OperationStatus status) throws AbstractAgentException {
+    public <T extends Operation> List<T> getOperations(Class<T> operationType, OperationStatus status) throws AbstractAgentException {
+        assertNotNull(operationType, "no operation type given");
+        assertNotNull(status, "can't get operations, no status is given");
+        
         // create template
+        String operationName = OperationFactory.getOperationName(operationType);
         String xId = platformServiceMqttConfiguration.getMqttConfiguration().getxId();
-        String template = getPayloadGetOperationStatus(xId, managedObjectId, String.valueOf(status), fragmentType);
+        String template = getPayloadGetOperationStatus(xId, managedObjectId, String.valueOf(status), operationName);
+
         // executorService
-        PublishFuture<List<GetOperationStatus>> publishFuture = new PublishFuture<List<GetOperationStatus>>(
+        PublishFuture<List<GetOperationStatus>> publishFuture = new PublishFuture<>(
                         executorService.submit(() -> {
                             mqttPlatform.publishMessage(template, (result) -> LOGGER
                                             .info("published message={} resulte={}", template, result));
@@ -561,21 +570,29 @@ public class PlatformServiceMqttImpl extends AbstractAgentService implements Pla
                         }));
         List<GetOperationStatus> values = publishFuture.get(timeout, TimeUnit.SECONDS);
         LOGGER.debug("got operations response {}", values);
-        List<Operation> result = new ArrayList<>();
+
         // check result
         if (Objects.isNull(values) || values.isEmpty()) {
-            return result;
+            return new ArrayList<>();
         }
+        
+        List<Operation> operations = new ArrayList<>();
         for (GetOperationStatus getOperationStatus : values) {
-            Operation operation = new Operation();
+            Operation operation = new Operation() {};
             operation.setDeviceId(managedObjectId);
             operation.setId(getOperationStatus.getId());
             operation.setStatus(OperationStatus.valueOf(getOperationStatus.getStatus()));
-            // important: set the fragmentType
-            operation.setProperty(fragmentType, "");
-            result.add(operation);
+            if(StringUtils.isNotEmpty(operationName)) {
+                operation.setProperty(operationName, "");
+            }
+            
+            operations.add(operation);
         }
-        return result;
+        
+        // convert operations into given type
+        List<T> convertedOperations = OperationFactory.convertTo(operationType, operations);
+        LOGGER.info("got {} operations from platform with status={}, type={}", operations.size(), status, operationType.getSimpleName());
+        return convertedOperations;
     }
 
     private AgentCredentials createDeviceCredentials(String iccId, int interval) throws AbstractAgentException {

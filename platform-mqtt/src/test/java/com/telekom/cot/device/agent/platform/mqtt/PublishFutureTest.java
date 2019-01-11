@@ -123,7 +123,7 @@ public class PublishFutureTest {
 		long timeout = 500;
 		
 		// act
-		Object test = publishFuture.get(timeout, TimeUnit.MILLISECONDS);
+		publishFuture.get(timeout, TimeUnit.MILLISECONDS);
 		
 		// assert
 		verify(mockFuture, times(1)).get(timeout, TimeUnit.MILLISECONDS);

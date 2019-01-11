@@ -4,9 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<cot.agent.version>0.18.1</cot.agent.version>
+		<cot.agent.version>0.20.0</cot.agent.version>
 		<cot.agent.version.demo>${cot.agent.version}</cot.agent.version.demo>
-		<cot.sdk.version>1.0.5</cot.sdk.version>
+		<cot.rest.sdk.version>1.1.0</cot.rest.sdk.version>
+		<cot.mqtt.sdk.version>1.0.2</cot.mqtt.sdk.version>
+		<vertx.version>3.5.1</vertx.version>
+		<jackson.version>2.9.8</jackson.version>
 	</properties>
 
 	<!-- $mvn clean install -P update -->
@@ -28,10 +31,11 @@
 		<module>app</module>
 		<module>common</module>
 		<module>service</module>
+		<module>device</module>
 		<module>credentials</module>
 		<module>operation</module>
 		<module>inventory</module>
-		<module>sensor</module>
+		
 		<module>alarm</module>
 		<module>event</module>
 		<module>platform</module>
@@ -39,6 +43,7 @@
 		<module>platform-rest</module>
 		<module>raspbian</module>
 		<module>demo</module>
+		<module>measurement</module>
 	</modules>
 
 	<dependencies>

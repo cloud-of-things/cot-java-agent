@@ -31,8 +31,8 @@ import com.telekom.cot.device.agent.platform.mqtt.event.OperationTestOperationAg
 import com.telekom.cot.device.agent.platform.mqtt.event.PublishedValuesAgentEvent;
 import com.telekom.cot.device.agent.platform.mqtt.event.PublishedValuesAgentEventListener;
 import com.telekom.cot.device.agent.platform.mqtt.event.StartupAgentEventListener;
-import com.telekom.cot.device.agent.platform.objects.Operation;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
 import com.telekom.cot.device.agent.service.event.AgentContextImpl;
 import com.telekom.cot.device.agent.service.event.AgentEventPublisher;
 
@@ -85,7 +85,7 @@ public class PublishCallbackTest {
         }, 1000);
         String conf = listener.waitOnAgentEventAndCreate();
         // check
-        assertThat(conf.length(), Matchers.equalTo(1554));
+        assertThat(conf.length(), Matchers.equalTo(1559));
         YAMLMapper om = new YAMLMapper();
         om.readValue(conf.getBytes(), Map.class);
     }
@@ -114,7 +114,7 @@ public class PublishCallbackTest {
         }, 1000);
         String conf = listener.waitOnAgentEventAndCreate();
         // check
-        assertThat(conf.length(), Matchers.equalTo(1554));
+        assertThat(conf.length(), Matchers.equalTo(1559));
         YAMLMapper om = new YAMLMapper();
         om.readValue(conf.getBytes(), Map.class);
     }

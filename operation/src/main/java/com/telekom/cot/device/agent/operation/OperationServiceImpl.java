@@ -1,16 +1,12 @@
 package com.telekom.cot.device.agent.operation;
 
-import static com.telekom.cot.device.agent.operation.handler.OperationUtil.getSoftwareToUpdate;
-import static com.telekom.cot.device.agent.platform.objects.OperationStatus.EXECUTING;
 import static com.telekom.cot.device.agent.service.AgentServiceShutdownHelper.shutdownServices;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -22,10 +18,13 @@ import com.telekom.cot.device.agent.common.exc.InventoryServiceException;
 import com.telekom.cot.device.agent.common.exc.OperationServiceException;
 import com.telekom.cot.device.agent.common.injection.Inject;
 import com.telekom.cot.device.agent.common.util.AssertionUtil;
-import com.telekom.cot.device.agent.operation.handler.OperationsHandlerService;
+import com.telekom.cot.device.agent.operation.handler.OperationHandlerService;
+import com.telekom.cot.device.agent.operation.operations.RestartOperation;
+import com.telekom.cot.device.agent.operation.operations.SoftwareUpdateOperation;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.cot.device.agent.platform.objects.Operation;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.OperationFactory;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
 import com.telekom.cot.device.agent.service.AbstractAgentService;
 import com.telekom.cot.device.agent.service.AgentServiceProvider;
 import com.telekom.cot.device.agent.system.SystemService;
@@ -34,11 +33,13 @@ import com.telekom.cot.device.agent.system.properties.SoftwareProperties;
 
 public class OperationServiceImpl extends AbstractAgentService implements OperationService {
 
-	private static final String C8Y_RESTART = "c8y_Restart";
-	private static final String C8Y_SOFTWARELIST = "c8y_SoftwareList";
+//	private static final String C8Y_RESTART = "c8y_Restart";
+//	private static final String C8Y_SOFTWARELIST = "c8y_SoftwareList";
+    
 	/** the logger. */
 	private static final Logger LOGGER = LoggerFactory.getLogger(OperationServiceImpl.class);
-	private List<OperationsHandlerService> operationHandlerServices;
+	@SuppressWarnings("rawtypes")
+    private List<OperationHandlerService> operationHandlerServices;
 	private OperationWorker operationWorker;
 	@Inject
 	private AgentServiceProvider serviceProvider;
@@ -64,7 +65,8 @@ public class OperationServiceImpl extends AbstractAgentService implements Operat
 		updateRestartOperations();
 		updateSoftwareUpdateOperations();
 		// get all loaded operation handlers, get and verify their supported operations
-		List<OperationsHandlerService> operationHandlers = getHandlerServices();
+		@SuppressWarnings("rawtypes")
+        List<OperationHandlerService> operationHandlers = getHandlerServices();
 		operationHandlers = verifySupportedOperations(operationHandlers);
 		// start all handler services and update supported operations
 		operationHandlerServices = startHandlerServices(operationHandlers);
@@ -102,10 +104,11 @@ public class OperationServiceImpl extends AbstractAgentService implements Operat
 	 * @return a list of all loaded operation handlers, maybe empty
 	 * @throws AbstractAgentException
 	 */
-	private List<OperationsHandlerService> getHandlerServices() throws AbstractAgentException {
+	@SuppressWarnings("rawtypes")
+    private List<OperationHandlerService> getHandlerServices() throws AbstractAgentException {
 		LOGGER.info("get all loaded operation handler services");
 		try {
-			List<OperationsHandlerService> loadedHandlerServices = serviceProvider.getServices(OperationsHandlerService.class);
+			List<OperationHandlerService> loadedHandlerServices = serviceProvider.getServices(OperationHandlerService.class);
 			LOGGER.debug("got {} operation handler services", loadedHandlerServices.size());
 			return loadedHandlerServices;
 		} catch (AgentServiceNotFoundException e) {
@@ -117,16 +120,16 @@ public class OperationServiceImpl extends AbstractAgentService implements Operat
 	/**
 	 * verifies all supported operations of all given operation handlers (only one
 	 * handler per operation allowed) and returns a list of verified handlers
-	 * 
-	 * @throws OperationServiceException
+	 * @throws AbstractAgentException 
 	 */
-	private List<OperationsHandlerService> verifySupportedOperations(List<OperationsHandlerService> handlerServices)
-			throws OperationServiceException {
+	@SuppressWarnings("rawtypes")
+    private List<OperationHandlerService> verifySupportedOperations(List<OperationHandlerService> handlerServices)
+			throws AbstractAgentException {
 		// create a list for all successfully verified handlers
-		List<OperationsHandlerService> verifiedOperationHandlers = new ArrayList<>();
+		List<OperationHandlerService> verifiedOperationHandlers = new ArrayList<>();
 		// get and verify all supported operations of all handlers
-		Set<String> alreadySupportedOperations = new HashSet<>();
-		for (OperationsHandlerService handlerService : handlerServices) {
+		Set<Class<? extends Operation>> alreadySupportedOperations = new HashSet<>();
+		for (OperationHandlerService handlerService : handlerServices) {
 			// verify handler and add to list if successful
 			if (verifyHandlerService(handlerService, alreadySupportedOperations)) {
 				verifiedOperationHandlers.add(handlerService);
@@ -137,32 +140,31 @@ public class OperationServiceImpl extends AbstractAgentService implements Operat
 
 	/**
 	 * verifies the supported operations of the given operation handler
-	 * 
-	 * @throws OperationServiceException
+	 * @throws AbstractAgentException
 	 */
-	private boolean verifyHandlerService(OperationsHandlerService handlerService,
-			Set<String> alreadySupportedOperations) throws OperationServiceException {
-		// get and check supported operations
-		String[] supportedOperations = handlerService.getSupportedOperations();
-		if (supportedOperations == null || supportedOperations.length == 0) {
-			LOGGER.warn("verification failed, operation handler '{}' supports no operations",
-					handlerService.getClass());
+	private boolean verifyHandlerService(@SuppressWarnings("rawtypes") OperationHandlerService handlerService,
+			Set<Class<? extends Operation>> alreadySupportedOperations) throws AbstractAgentException {
+
+	    // get and check supported operation
+		@SuppressWarnings("unchecked")
+        Class<? extends Operation> supportedOperation = handlerService.getSupportedOperationType();
+		if (supportedOperation == null) {
+			LOGGER.warn("verification failed, operation handler '{}' supports no operation", handlerService.getClass());
 			return false;
 		}
-		// verify whether another handler already supports the operations
-		for (String supportedOperation : supportedOperations) {
-			if (alreadySupportedOperations.contains(supportedOperation)) {
-				LOGGER.error("error supported operations {} of handler {}", supportedOperations,
-						handlerService.getClass().getName());
-				throw new OperationServiceException(
-						"operation handler '" + handlerService.getClass().getName() + "supports operation '"
-								+ supportedOperation + "', which is already supported by another operation handler");
-			}
-			// current operation name is verified, add to already supported operations
-			LOGGER.debug("added supported operations {} of handler {}", supportedOperations,
-					handlerService.getClass().getName());
-			alreadySupportedOperations.add(supportedOperation);
+
+		// verify whether another handler already supports the operation
+		if (alreadySupportedOperations.contains(supportedOperation)) {
+			throw AssertionUtil.createExceptionAndLog(OperationServiceException.class, LOGGER,
+                "operation handler '" + handlerService.getClass().getName() + "supports operation '"
+                + supportedOperation + "', which is already supported by another operation handler");
 		}
+
+		// current operation name is verified, add to already supported operations
+		LOGGER.debug("added supported operation {} of handler {}", supportedOperation,
+				handlerService.getClass().getName());
+		alreadySupportedOperations.add(supportedOperation);
+		
 		return true;
 	}
 
@@ -171,17 +173,19 @@ public class OperationServiceImpl extends AbstractAgentService implements Operat
 	 * 
 	 * @return a list of all successfully started operation handlers
 	 */
-	private List<OperationsHandlerService> startHandlerServices(List<OperationsHandlerService> handlerServices) {
-		List<OperationsHandlerService> startedHandlerServices = new ArrayList<>();
+	@SuppressWarnings("rawtypes")
+    private List<OperationHandlerService> startHandlerServices(List<OperationHandlerService> handlerServices) {
+		List<OperationHandlerService> startedHandlerServices = new ArrayList<>();
 		// try to start each handler
-		for (OperationsHandlerService handlerService : handlerServices) {
+		handlerServices.stream().forEach(handlerService -> {
 			try {
 				handlerService.start();
 				startedHandlerServices.add(handlerService);
 			} catch (Exception e) {
 				LOGGER.error("can't start the operation handler " + handlerService.getClass(), e);
 			}
-		}
+		});
+		
 		return startedHandlerServices;
 	}
 
@@ -192,14 +196,16 @@ public class OperationServiceImpl extends AbstractAgentService implements Operat
 	 * 
 	 * @throws AbstractAgentException
 	 */
-	private boolean updateSupportedOperations() throws AbstractAgentException {
+	@SuppressWarnings("unchecked")
+    private boolean updateSupportedOperations() throws AbstractAgentException {
 		LOGGER.info("update supported operations");
 		// get all supported operations from all currently started handlers
-		List<String> supportedOperationNames = operationHandlerServices.stream()
-				.map(ohs -> Arrays.asList(ohs.getSupportedOperations())).collect(Collectors.toList()).stream()
-				.flatMap(List::stream).collect(Collectors.toList());
+		List<Class<? extends Operation>> supportedOperations = new ArrayList<>();
+		operationHandlerServices.stream().forEach(handlerService -> supportedOperations.add(handlerService.getSupportedOperationType()));
+		
 		// update supported operations
 		try {
+		    List<String> supportedOperationNames = OperationFactory.getOperationNames(supportedOperations);
 			LOGGER.debug("update supported operations {}", supportedOperationNames);
 			platformService.updateSupportedOperations(supportedOperationNames);
 		} catch (AgentServiceNotFoundException | InventoryServiceException e) {
@@ -214,11 +220,10 @@ public class OperationServiceImpl extends AbstractAgentService implements Operat
 	 */
 	private void updateRestartOperations() throws AbstractAgentException {
 		LOGGER.info("update restart operations with status EXECUTING to status SUCCESSFUL");
-		List<Operation> restartOperations = platformService.getOperations(C8Y_RESTART, EXECUTING);
-		for (Operation operation : restartOperations) {
-		    String operationId = operation.getId();
-			LOGGER.debug("update status of restart operation {}", operationId);
-			platformService.updateOperationStatus(operationId, OperationStatus.SUCCESSFUL);
+		List<RestartOperation> restartOperations = platformService.getOperations(RestartOperation.class, OperationStatus.EXECUTING);
+		for (RestartOperation operation : restartOperations) {
+			LOGGER.debug("update status of restart operation {}", operation.getId());
+			platformService.updateOperationStatus(operation.getId(), OperationStatus.SUCCESSFUL);
 		}
 	}
 
@@ -232,17 +237,15 @@ public class OperationServiceImpl extends AbstractAgentService implements Operat
         Software currentSoftware = getCurrentSoftware();
         
         // get software update operations and update status
-        List<Operation> softwareUpdateOperations = platformService.getOperations(C8Y_SOFTWARELIST, EXECUTING);
-		for (Operation operation : softwareUpdateOperations) {
-		    String id = operation.getId();
-		    
-	        // get operation status depending on current software and requested software
-	        OperationStatus status = currentSoftware.equals(getSoftwareToUpdate(operation), false)
-	                        ? OperationStatus.SUCCESSFUL : OperationStatus.FAILED;
-		    
-			LOGGER.debug("update software update operation {} to status {}", id, status);
-			platformService.updateOperationStatus(id, status);
-		}
+        List<SoftwareUpdateOperation> softwareUpdateOperations = platformService.getOperations(SoftwareUpdateOperation.class, OperationStatus.EXECUTING);
+        for(SoftwareUpdateOperation operation : softwareUpdateOperations) {
+            // get operation status depending on current software and requested software
+            OperationStatus status = currentSoftware.equals(operation.getSoftware(), false)
+                            ? OperationStatus.SUCCESSFUL : OperationStatus.FAILED;
+
+            LOGGER.debug("update software update operation {} to status {}", operation.getId(), status);
+            platformService.updateOperationStatus(operation.getId(), status);
+        }
 	}
 
 	/**

@@ -16,7 +16,7 @@ The Java agent contains following functionalities:
 * Update configuration
 * Update software (only available using HTTP REST communication)
 
-_Current version is: 0.18.1_
+_Current version is: 0.20.0_
 
 ## Prerequisites  
 
@@ -37,8 +37,8 @@ Software packages are available at https://github.com/cloud-of-things/cot-java-a
 To install the agent on a Raspberry Pi, start the terminal and install the pre-built debian package.
 
 ```
-$ wget https://github.com/cloud-of-things/cot-java-agent/releases/download/v0.18.1/device-agent-raspbian_0.18.1_all.deb
-$ sudo dpkg -i device-agent-raspbian_0.18.1_all.deb
+$ wget https://github.com/cloud-of-things/cot-java-agent/releases/download/v0.20.0/device-agent-raspbian_0.20.0_all.deb
+$ sudo dpkg -i device-agent-raspbian_0.20.0_all.deb
 ```
 After installation, the agent software can be found at directory `/opt/cot-java-agent/` on the Raspberry Pi.  
 
@@ -46,15 +46,15 @@ Note: The recommended model is "Raspberry Pi 3 Model B" or later.
 
 ## Configuration
 
-The agent is completely configured via the single, comprehensive file  [agent.yaml](raspbian/assembly/configuration/agent.yaml)  
+The agent is completely configured via the single, comprehensive file [agent.yaml](raspbian/assembly/configuration/agent.yaml)  
 
 To edit the agent.yaml use a text editor (e.g. Vi or nano):
-
-				
 ```
 $ sudo nano /opt/cot-java-agent/agent.yaml
 ```
+
 ### deviceName
+
 To set the name for the initial creation of the device in the CoT inventory adapt the deviceName:
 ```
 agent:
@@ -93,6 +93,7 @@ agent:
         proxyPort:  null # by default
         operationsRequestSize: 10 # by default
 ```
+
 #### mqttConfiguration
 
 Delete the complete restConfiguration body.  
@@ -112,6 +113,7 @@ agent:
         port: 8883 # by default
         xId: novaMqttTemplates04 # by default
         timeout: 10 # by default
+        delaySendMeasurement: 100 # milliseconds
 ```
 
 The tenant must be prepared for MQTT and the SmartREST template collection (novaMqttTemplates04) must be registered. See details in [CONFIGURATION.md](CONFIGURATION.md).
@@ -154,7 +156,7 @@ agent:
 ...
   services:
     ...
-    sensorService:
+    measurementService:
       sendInterval: 5 # interval in seconds at which measurements are sent to the CoT
     ...  
   raspbian:
@@ -181,6 +183,7 @@ agent:
 ```
 $ sudo /etc/init.d/cot-java-agent stop
 ```
+
 ### Status of the agent
 
 ```
@@ -195,9 +198,16 @@ Developers can find further technical information in the [DEVELOPER.md](DEVELOPE
 
 Short information about what has changed between releases.
 
-### Release 0.18.1
+### Release 0.20.0
 
-* Updated CoT MQTT SDK to version 1.0.1
+* Update REST SDK Version 1.1.0
+* Update MQTT SDK Version 1.0.2
+* Update dependencies 'jackson-databind' and 'jackson-dataformat-yaml' Version 2.9.8
+
+### Release 0.19.0
+
+* Update MQTT SDK Version 1.0.1
+* Optimized Operation Handling
 
 ### Release 0.18.0
 

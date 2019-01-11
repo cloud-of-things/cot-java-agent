@@ -1,10 +1,18 @@
 package com.telekom.cot.device.agent.platform.mqtt;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import com.telekom.cot.device.agent.common.AlarmSeverity;
+import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
+import com.telekom.cot.device.agent.platform.mqtt.TemplateId.TYPE;
+import com.telekom.cot.device.agent.platform.objects.AgentConfiguration;
+import com.telekom.cot.device.agent.platform.objects.AgentFirmware;
+import com.telekom.cot.device.agent.platform.objects.AgentHardware;
+import com.telekom.cot.device.agent.platform.objects.AgentMobile;
+import com.telekom.cot.device.agent.platform.objects.AgentSoftwareList.Software;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,23 +22,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.telekom.cot.device.agent.common.AlarmSeverity;
-import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
-import com.telekom.cot.device.agent.platform.mqtt.TemplateId.TYPE;
-import com.telekom.cot.device.agent.platform.objects.AgentConfiguration;
-import com.telekom.cot.device.agent.platform.objects.AgentFirmware;
-import com.telekom.cot.device.agent.platform.objects.AgentHardware;
-import com.telekom.cot.device.agent.platform.objects.AgentMobile;
-import com.telekom.cot.device.agent.platform.objects.AgentSoftwareList.Software;
-
 public class SmartRestUtil {
 
 	private static final String REGEX_VALID_ID = "(\\$)(\\{)([A-Z]|_){1,50}(\\})";
 	private static final String REGEX_INVALID_ID = "(\\$)(\\{)(.*)(\\})";
+	private static final String COT_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 	private static final Logger LOGGER = LoggerFactory.getLogger(SmartRestUtil.class);
 
 	/**
@@ -67,7 +63,7 @@ public class SmartRestUtil {
 	public static String getPayloadCreateMeasurement(final String xID, final String type, final float value,
 			final String unit, final Date time, final String managedObjectId) {
 		String valueString = String.valueOf(value);
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(COT_TIME_PATTERN);
 		String dateString = simpleDateFormat.format(time);
 		String payload = "15," + xID + "\n" + TemplateId.CREATE_MEASUREMENT_REQ.getId() + "," + type + ",0,"
 				+ valueString + "," + unit + "," + dateString + "," + managedObjectId + "," + type;
@@ -96,7 +92,7 @@ public class SmartRestUtil {
 	 */
 	public static String getPayloadCreateEvent(String xId, Date time, String type, String text, String managedObjectId,
 			String condition, String conditionValue) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(COT_TIME_PATTERN);
 		String dateString = simpleDateFormat.format(time);
 		String payload = "15," + xId + "\n" + TemplateId.CREATE_EVENT_REQ.getId() + "," + condition + ","
 				+ conditionValue + "," + managedObjectId + "," + dateString + "," + type + "," + text;
@@ -125,7 +121,7 @@ public class SmartRestUtil {
 	 */
 	public static String getPayloadCreateAlarm(String xId, Date time, String type, AlarmSeverity severity, String text,
 			String status, String managedObjectId) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(COT_TIME_PATTERN);
 		String dateString = simpleDateFormat.format(time);
 		String payload = "15," + xId + "\n" + TemplateId.CREATE_ALARM_REQ.getId() + "," + type + "," + dateString + ","
 				+ text + "," + status + "," + severity.getValue() + "," + managedObjectId;
@@ -167,7 +163,7 @@ public class SmartRestUtil {
 	 * @return payload
 	 */
 	public static String getPayloadPutOperationStatus(String xId, String operationId, String status) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(COT_TIME_PATTERN);
         String dateString = simpleDateFormat.format(new Date());
 		String payload = "15," + xId + "\n" + TemplateId.UPDATE_STATUS_OF_OPERATION_REQ.getId() + "," + operationId + ","
 				+ status + "," + status + "," + dateString;
@@ -431,15 +427,14 @@ public class SmartRestUtil {
 				os.write(template.getBytes());
 				os.write('\n');
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("IOException: {}", e);
 			} finally {
 				try {
 					os.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                    LOGGER.error("IOException: {}", e);
+
+                }
 			}
 		}
 		return os.toByteArray();

@@ -4,6 +4,7 @@ import static com.telekom.cot.device.agent.common.util.AssertionUtil.createExcep
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -26,10 +27,10 @@ import com.telekom.cot.device.agent.common.util.AssertionUtil;
 import com.telekom.cot.device.agent.platform.PlatformService;
 import com.telekom.cot.device.agent.platform.PlatformServiceConfiguration.ExternalIdConfig;
 import com.telekom.cot.device.agent.platform.objects.AgentManagedObject;
-import com.telekom.cot.device.agent.platform.objects.Operation;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
-import com.telekom.cot.device.agent.platform.rest.util.OperationMapper;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.OperationFactory;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
 import com.telekom.cot.device.agent.service.AbstractAgentService;
 import com.telekom.cot.device.agent.system.SystemService;
 import com.telekom.cot.device.agent.system.properties.HardwareProperties;
@@ -68,11 +69,10 @@ public class PlatformServiceRestImpl extends AbstractAgentService implements Pla
     @Inject
     private AgentCredentialsManager credentialsManager;
 	
-	private AgentCredentials agentCredentials;
 	private CloudOfThingsPlatform cotPlatform = null;
 	private ExternalId externalId;
 	private ConcurrentLinkedQueue<Operation> pendingOperations = new ConcurrentLinkedQueue<>();
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -85,7 +85,7 @@ public class PlatformServiceRestImpl extends AbstractAgentService implements Pla
 		configureProxySettings();
 
 		// get agent credentials
-		agentCredentials = credentialsManager.getCredentials();
+		AgentCredentials agentCredentials = credentialsManager.getCredentials();
 
 		// create CoT platform
 		cotPlatform = CoTPlatformBuilder.create().setHostname(configuration.getHostName())
@@ -425,10 +425,10 @@ public class PlatformServiceRestImpl extends AbstractAgentService implements Pla
 	 */
 	@Override
 	public void updateSupportedOperations(List<String> supportedOperationNames) throws AbstractAgentException {
-		assertNotNull(supportedOperationNames, "no supported operation names is given");
-		LOGGER.info("update supported operations");
-		SupportedOperations supportedOperations = new SupportedOperations(
-				supportedOperationNames.toArray(new String[0]));
+		assertNotNull(supportedOperationNames, "no supported operation types given");
+        LOGGER.info("update supported operations: {}", supportedOperationNames);
+
+        SupportedOperations supportedOperations = new SupportedOperations(supportedOperationNames.toArray(new String[0]));
 		try {
 			ExternalId identExternalId = getExternalId();
 			ManagedObject managedObject = new ManagedObject();
@@ -451,7 +451,7 @@ public class PlatformServiceRestImpl extends AbstractAgentService implements Pla
         // request pending operations if there are no pending operations
         if (pendingOperations.isEmpty()) {
             LOGGER.info("requested pending operations from platform");
-            pendingOperations.addAll(getOperations(null,OperationStatus.PENDING));
+            pendingOperations.addAll(getOperations(OperationStatus.PENDING));
         }
 
         return pendingOperations.poll();
@@ -461,22 +461,22 @@ public class PlatformServiceRestImpl extends AbstractAgentService implements Pla
      * {@inheritDoc}
      */
     @Override
-    public List<Operation> getOperations(String operationName, OperationStatus status) throws AbstractAgentException {
-        // check status
+    public <T extends Operation> List<T> getOperations(Class<T> operationType, OperationStatus status) throws AbstractAgentException {
+        assertNotNull(operationType, "no operation type given");
         assertNotNull(status, "can't get operations, no status is given");
         
         int pageSize = configuration.getRestConfiguration().getOperationsRequestSize();
-        LOGGER.debug("get operations from platform, status={}, pageSize={}, name={}", status, pageSize, operationName);
+        LOGGER.debug("get operations from platform, status={}, pageSize={}, type={}", status, pageSize, operationType);
 
         // create a filter to select operations by status and optional operation(fragment) name
-        OperationCollection requestedOperations;
+        OperationCollection operationCollection;
         try {
             FilterBuilder filters = new FilterBuilder();
             filters.setFilter(FilterBy.BYDEVICEID,getExternalId().getManagedObject().getId());
             filters.setFilter(FilterBy.BYSTATUS, status.toString());
             
             // get operation collection
-            requestedOperations = cotPlatform.getDeviceControlApi().getOperationCollection(filters, pageSize);
+            operationCollection = cotPlatform.getDeviceControlApi().getOperationCollection(filters, pageSize);
 
         } catch (CotSdkException exception) {
             throw new PlatformServiceException(exception.getHttpStatus(), ERROR_GET_OPERATION_COLLECTION, exception);
@@ -487,18 +487,17 @@ public class PlatformServiceRestImpl extends AbstractAgentService implements Pla
         // map requested operations and add to list
         List<Operation> operations = new ArrayList<>();
         do {
-            for (com.telekom.m2m.cot.restsdk.devicecontrol.Operation operation : requestedOperations.getOperations()) {
-            	// filter by given operationName if operationName not empty/null
-            	if(StringUtils.isEmpty(operationName) || operation.has(operationName)) {
-            		operations.add(OperationMapper.fromSDKOperation(operation));
-            	}                
-            }
-        } while(requestedOperations.hasNext());
+            Arrays.stream(operationCollection.getOperations()).forEach(sdkOperation -> 
+                operations.add(new Operation(SDKOperationConverter.toPropertiesMap(sdkOperation)) {})
+            );
+        } while(operationCollection.hasNext());
         
-        LOGGER.info("got {} operations from platform with status={}, name={}", operations.size(), status, operationName);
-        return operations;
+        // convert operations into given type
+        List<T> convertedOperations = OperationFactory.convertTo(operationType, operations);
+        LOGGER.info("got {} operations from platform with status={}, type={}", operations.size(), status, operationType.getSimpleName());
+        return convertedOperations;
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -512,7 +511,7 @@ public class PlatformServiceRestImpl extends AbstractAgentService implements Pla
         LOGGER.debug("update operation status, operation id = {}, new status = {}", operationId, newStatus);
         com.telekom.m2m.cot.restsdk.devicecontrol.Operation sdkOperation = new com.telekom.m2m.cot.restsdk.devicecontrol.Operation();
         sdkOperation.set("id", operationId);
-        sdkOperation.setStatus(OperationMapper.toSDKOperationStatus(newStatus));
+        sdkOperation.setStatus(SDKOperationConverter.toSDKOperationStatus(newStatus.name()));
         
         // update operation
         try {

@@ -11,10 +11,10 @@ import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentShutdownException;
 import com.telekom.cot.device.agent.event.EventService;
 import com.telekom.cot.device.agent.inventory.InventoryService;
+import com.telekom.cot.device.agent.measurement.MeasurementService;
 import com.telekom.cot.device.agent.operation.OperationService;
 import com.telekom.cot.device.agent.operation.OperationServiceConfiguration;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.service.AgentServiceProvider;
 import com.telekom.cot.device.agent.service.AgentServiceShutdownHelper;
 import com.telekom.cot.device.agent.system.SystemService;
@@ -43,7 +43,7 @@ public class AppShutdown extends Thread {
 		LOGGER.debug("shutdown agent...");
 
 		// shut down all services
-		shutDownSensorService();
+		shutDownMeasurementService();
 		shutDownAlarmService();
 		shutDownEventService();
 		shutDownOperationService();
@@ -57,11 +57,11 @@ public class AppShutdown extends Thread {
 	/**
 	 * shut down sensor service and all sensor device services
 	 */
-	private void shutDownSensorService() {
+	private void shutDownMeasurementService() {
 		LOGGER.debug("stop the sensor service and all sensor device services");
 
 		try {
-			shutdownHelper.shutdownService(SensorService.class, commonConfiguration.getShutdownTimeout(), true);
+			shutdownHelper.shutdownService(MeasurementService.class, commonConfiguration.getShutdownTimeout(), true);
 			LOGGER.info("shut down sensor service and all sensor device services successfully");
 		} catch (AbstractAgentException e) {
 			LOGGER.error("can't shut down sensor service and all sensor device services", e);

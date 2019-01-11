@@ -2,8 +2,6 @@ package com.telekom.cot.device.agent.platform.mqtt.event;
 
 import static org.junit.Assert.assertThat;
 
-import java.util.concurrent.TimeUnit;
-
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,9 +9,6 @@ import org.junit.Test;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.platform.mqtt.PublishedValues;
 import com.telekom.cot.device.agent.platform.mqtt.TemplateId;
-import com.telekom.cot.device.agent.platform.mqtt.event.ManagedObjectAgentEvent;
-import com.telekom.cot.device.agent.platform.mqtt.event.ManagedObjectAgentEventListener;
-import com.telekom.cot.device.agent.platform.mqtt.event.PublishedValuesAgentEvent;
 import com.telekom.cot.device.agent.service.event.AgentEventListenerCollection;
 import com.telekom.cot.device.agent.service.event.AgentEventPublisher;
 import com.telekom.cot.device.agent.service.event.AgentEventPublisherAsync;

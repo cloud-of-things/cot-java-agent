@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.telekom.cot.device.agent.platform.mqtt.PublishedValues;
-import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
 
 public class OperationConfigUpdateAgentEventListener
                 extends PublishedValuesAgentEventListener<Operation, OperationConfigUpdateAgentEvent> {
@@ -32,15 +32,15 @@ public class OperationConfigUpdateAgentEventListener
      * Create a ManagedObject by the PublishedValues from the PublishCallback.
      */
     public Operation create(PublishedValues publishedValues) {
-        if (isOperation(publishedValues)) {
-            Operation operation = new Operation();
-            operation.setId(publishedValues.getValue("id"));
-            Map<String, String> configurationOperationAttrs = new HashMap<>();
-            configurationOperationAttrs.put("config", clear(publishedValues.getValue(ATTR_C8Y_CONFIGURATION)));
-            operation.setProperty("c8y_Configuration", configurationOperationAttrs);
-            return operation;
+        if (!isOperation(publishedValues)) {
+            return null;
         }
-        return null;
+
+        Operation operation = new Operation(publishedValues.getValue("id")) {};
+        Map<String, String> configurationOperationAttrs = new HashMap<>();
+        configurationOperationAttrs.put("config", clear(publishedValues.getValue(ATTR_C8Y_CONFIGURATION)));
+        operation.setProperty("c8y_Configuration", configurationOperationAttrs);
+        return operation;
     }
 
     private String clear(String value) {

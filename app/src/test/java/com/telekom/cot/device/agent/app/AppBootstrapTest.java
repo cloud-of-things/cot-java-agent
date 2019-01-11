@@ -14,9 +14,9 @@ import com.telekom.cot.device.agent.common.configuration.ConfigurationManager;
 import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.event.EventService;
 import com.telekom.cot.device.agent.inventory.InventoryService;
+import com.telekom.cot.device.agent.measurement.MeasurementService;
 import com.telekom.cot.device.agent.operation.OperationService;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.service.AgentServiceManager;
 import com.telekom.cot.device.agent.system.SystemService;
 
@@ -66,7 +66,7 @@ public class AppBootstrapTest {
         verify(mockSteps).startService(OperationService.class);
         verify(mockSteps).startService(EventService.class);
         verify(mockSteps).startService(AlarmService.class);
-        verify(mockSteps).startService(SensorService.class);
+        verify(mockSteps).startService(MeasurementService.class);
         verify(mockSteps).sendEventAgentStarted();
     }
 
@@ -84,7 +84,7 @@ public class AppBootstrapTest {
         verify(mockSteps).startService(OperationService.class);
         verify(mockSteps).startService(EventService.class);
         verify(mockSteps).startService(AlarmService.class);
-        verify(mockSteps).startService(SensorService.class);
+        verify(mockSteps).startService(MeasurementService.class);
         verify(mockSteps).sendEventAgentStarted();
     }
 
@@ -102,7 +102,7 @@ public class AppBootstrapTest {
         verify(mockSteps).startService(OperationService.class);
         verify(mockSteps).startService(EventService.class);
         verify(mockSteps).startService(AlarmService.class);
-        verify(mockSteps).startService(SensorService.class);
+        verify(mockSteps).startService(MeasurementService.class);
         verify(mockSteps).sendEventAgentStarted();
     }
 
@@ -118,7 +118,7 @@ public class AppBootstrapTest {
         verify(mockSteps).startService(OperationService.class);
         verify(mockSteps).startService(EventService.class);
         verify(mockSteps).startService(AlarmService.class);
-        verify(mockSteps).startService(SensorService.class);
+        verify(mockSteps).startService(MeasurementService.class);
         verify(mockSteps).sendEventAgentStarted();
     }
 }

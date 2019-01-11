@@ -1,7 +1,0 @@
-/device-credentials*.yaml*
-agent.pid
-/agent-local*.yaml
-/temperatures.txt
-/deviceCredentialsFile
-/logback-local.xml
-certificates/

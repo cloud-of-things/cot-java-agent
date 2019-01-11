@@ -98,42 +98,48 @@ This package contains the logic to manage the services (e.g. load and initialize
 
 `SensorDeviceServices` are customer specific components (implementing the interface `SensorDeviceService`) that handle all communication between the agent and sensor devices or subdevices.
 
-A `SensorDeviceService` collects measurements at a fixed rate (e.g. `agent.raspbian.sensors.cputemperature.recordReadingsInterval`), checks for alarms and sends them to the SensorService.
+A `SensorDeviceService` collects measurements at a fixed rate (e.g. `agent.raspbian.sensors.cputemperature.recordReadingsInterval`), checks for alarms and sends them to the PlatformService.
 
 Two examples of `SensorDeviceServices` are included in the project:
 * `com.telekom.cot.device.agent.demo.sensor.DemoTemperatureSensor`
 * `com.telekom.cot.device.agent.raspbian.sensor.CpuTemperatureSensor`
 
-### SensorService
+### MeasurementService
 ```
-package com.telekom.cot.device.agent.sensor;
+package com.telekom.cot.device.agent.measurement;
 ```
 This service sends the measurements (that were pushed by the `SensorDeviceServices`) at a fixed rate to the CoT. It is also responsible to forward an incoming alarm from a SensorDeviceService immediately to the CoT, and to send events.
 
 Dependencies:
 * PlatformService
 
-### OperationsHandlerService
-
-`OperationsHandlerServices` are customer specific components (implementing the interface `OperationsHandlerService`) that support given operations (e.g. c8y_Restart, c8y_Configuration, c8y_SoftwareList).
-
-An example of `OperationsHandlerServices` is included in the project:
-* `com.telekom.cot.device.agent.raspbian.operation.RaspbianOperationsHandler`
-
 ### OperationService
 ```
 package com.telekom.cot.device.agent.operation;
 ```
 The `OperationService` is responsible for:
-* Verifying that all registered `OperationsHandlerServices` handle different operations (there must be only one handler per operation)
-* Starting all registered `OperationsHandlerServices`
+* Verifying that all registered `OperationHandlerServices` handle different operations (there must be only one handler per operation)
+* Starting all registered `OperationHandlerServices`
 * Updating the operations supported by the agent in the CoT
 * Getting all pending operations from the CoT
-* Letting the registered `OperationsHandlerServices` handle the operations
+* Letting the registered `OperationHandlerServices` handle the operations
 * Updating the operation statuses in the CoT
 
 Dependencies:
 * PlatformService
+
+### OperationHandlerService
+```
+package com.telekom.cot.device.agent.operation.handler;
+```
+
+`OperationHandlerServices` are customer specific services that handle and execute specific operations. Each operation handling service has to implement the interface `OperationHandlerService<T extends Operation>` for exactly one specific type of operation. The current implementation of the agent supports only exactly one `OperationHandlerService` per specific operation.
+
+The project contains currently 4 `OperationHandlerService` implementations (at packages `com.telekom.cot.device.agent.operation.handler` and `com.telekom.cot.device.agent.raspbian.operation`):
+* `ConfigurationUpdateOperationHandler` handles operations of type `ConfigurationUpdateOperation` and performs configuration updates
+* `SoftwareUpdateOperationHandler` handles operations of type `SoftwareUpdateOperation` and performs agent software updates
+* `TestOperationHandler` handles operations of type `TestOperation` which is used for automated tests
+* `RestartOperationHandler` handles operations of type `RestartOperation` to restart a RaspberryPi device
 
 ### SystemService
 ```
@@ -191,9 +197,9 @@ Supporting new sensors requires creating a class implementing the interface `Sen
 `TemperatureSensor` is an abstract class implementing `SensorDeviceService` and can be extended to create a custom class. A thread is started in the `start()` method in order to measure sensor values at a fixed rate (defined in agent.yaml: recordReadingsInterval). This thread has the following tasks:
 * Read a measurement
 * Check for alarms
-* Send the measurement to the `SensorService` so that it will be sent to the CoT in another thread
+* Send the measurement to the `MeasurementService` so that it will be sent to the CoT in another thread
 
-When a sensor value is measured, alarms can be checked and sent to the `SensorService` in case the measured value falls in the defined interval. See the method `checkAlarms()` in [TemperatureSensor](sensor/src/main/java/com/telekom/cot/device/agent/sensor/deviceservices/TemperatureSensor.java). Alarms sent to `SensorService` are then immediately sent to the CoT.
+When a sensor value is measured, alarms can be checked and sent to the `MeasurementService` in case the measured value falls in the defined interval. See the method `checkAlarms()` in [TemperatureSensor](sensor/src/main/java/com/telekom/cot/device/agent/sensor/deviceservices/TemperatureSensor.java). Alarms sent to `AlarmService` are then immediately sent to the CoT.
 
 Two sensor examples are included in the project:
 * demo: [DemoTemperatureSensor.java](demo/src/main/java/com/telekom/cot/device/agent/demo/sensor/DemoTemperatureSensor.java)
@@ -201,15 +207,21 @@ Two sensor examples are included in the project:
 
 ### Operations
 
-Supporting new operations requires creating a Java class implementing the interface `OperationsHandlerService`.
+Supporting new operations can be done in two steps:
+1. <b>Implement a new specific operation type</b><br/>
+by extending abstract class `com.telekom.cot.device.agent.platform.objects.operation.Operation`.<br/>
+The new specific operation class must be annotated by the `com.telekom.cot.device.agent.platform.objects.operation.OperationAttributes` to assign the name of the operation (e.g. "c8y_Restart" for the `RestartOperation`). The JSON representation of the operation (sent from CoT) must contain this name as property.<br/><br/>
+2. <b>Implement a new operation handler for the new operation type</b><br/>
+by implementing the interface `OperationHandlerService<T extends Operation>`
 
-This interface contains following methods:
-* public String[] getSupportedOperations()
-* public OperationStatus execute(Operation operation)
+The operation handler has two methods:<br/>
+* <i>public Class<T> getSupportedOperationType()</i><br/>
+returns the type of the new operation this handler can handle (e.g. `RestartOperation.class`)<br/><br/>
+* <i>public OperationStatus execute(T operation)</i><br/>
+handles operations of the new type and returns a status of the operation handling (e.g. `Operation.OperationStatus.SUCCESSFUL`)
 
-`getSupportedOperations` should return the list of operations supported by the handler (e.g. "c8y_Restart").
-
-`execute` is the method that executes a pending operation. It must return its status after the execution is finished (SUCCESSFUL, FAILED).
-
-An operation handler is included in the project:
-* raspbian: [com.telekom.cot.device.agent.raspian.operation](raspbian/src/main/java/com/telekom/cot/device/agent/raspbian/operation)
+The agent project contains currently 4 operation handler implementations:
+* `ConfigurationUpdateOperationHandler` handles operations of type `ConfigurationUpdateOperation` and performs configuration updates
+* `SoftwareUpdateOperationHandler` handles operations of type `SoftwareUpdateOperation` and performs agent software updates
+* `TestOperationHandler` handles operations of type `TestOperation` which is used for automated tests
+* `RestartOperationHandler` handles operations of type `RestartOperation` to restart a RaspberryPi device

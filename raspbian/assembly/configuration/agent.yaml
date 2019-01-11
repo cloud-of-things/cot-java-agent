@@ -78,8 +78,8 @@ agent:
         tenant: management
         
 
-    # sensor service configuration
-    sensorService:
+    # measurement service configuration
+    measurementService: 
       sendInterval: 5 # interval in seconds at which measurements are sent to the CoT
     
     # operation service configuration
@@ -88,7 +88,10 @@ agent:
       interval: 10
       # shutdown timeout in milliseconds for stopping operation service and its operation handlers
       shutdownTimeout: 5000
-      handlersShutdownTimeout: 500 
+      handlersShutdownTimeout: 500
+
+    deviceService:
+      handlersShutdownTimeout: 10
 
   operations:
     testOperation:

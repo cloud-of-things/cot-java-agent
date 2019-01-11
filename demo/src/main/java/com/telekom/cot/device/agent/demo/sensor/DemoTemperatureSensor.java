@@ -9,9 +9,9 @@ import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.SensorDeviceServiceException;
 import com.telekom.cot.device.agent.common.injection.Inject;
 import com.telekom.cot.device.agent.common.util.AssertionUtil;
+import com.telekom.cot.device.agent.device.sensordevice.SensorConfiguration;
+import com.telekom.cot.device.agent.device.sensordevice.TemperatureSensor;
 import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
-import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
-import com.telekom.cot.device.agent.sensor.deviceservices.TemperatureSensor;
 
 public class DemoTemperatureSensor extends TemperatureSensor {
 

@@ -8,7 +8,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.telekom.cot.device.agent.common.AlarmSeverity;

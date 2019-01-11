@@ -2,20 +2,21 @@ package com.telekom.cot.device.agent.operation;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.OperationServiceException;
-import com.telekom.cot.device.agent.operation.handler.OperationsHandlerService;
+import com.telekom.cot.device.agent.operation.handler.OperationHandlerService;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.cot.device.agent.platform.objects.Operation;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.OperationFactory;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
 
 /**
  * Handles the operation requests and executions.
@@ -37,7 +38,8 @@ public class OperationWorker {
 	/** The CoT platform. */
 	private PlatformService platformService;
 	/** All operation handler implementations. */
-	private Map<String, OperationsHandlerService> operationHandlerServicesMap;
+    @SuppressWarnings("rawtypes")
+    private Map<Class<? extends Operation>, OperationHandlerService> operationHandlerServicesMap;
 	/** The sleep interval. */
 	private int interval;
 
@@ -45,7 +47,8 @@ public class OperationWorker {
 	private boolean stopped = false;
 
 	/** The protected constructor. */
-	protected OperationWorker(PlatformService platformService, List<OperationsHandlerService> operationHandlerServices,
+    @SuppressWarnings("rawtypes")
+    protected OperationWorker(PlatformService platformService, List<OperationHandlerService> operationHandlerServices,
 			int sleepInterval) {
 		LOGGER.info("create operation worker");
 		this.platformService = platformService;
@@ -115,13 +118,25 @@ public class OperationWorker {
 		LOGGER.info("running operation worker");
 		while (running.get()) {
 		    // get and check next pending operation, sleep when no pending operation found
-		    Operation operation = getNextPendingOperation();
-		    if (Objects.isNull(operation)) {
+		    Operation pendingOperation = getNextPendingOperation();
+		    if (Objects.isNull(pendingOperation)) {
 		        LOGGER.debug("no pending operation found");
 		        sleep();
 		        continue;
 		    }
 
+		    // convert not specific (abstract) operation to specific operation (type)
+		    Operation operation = OperationFactory.convertToSpecificOperation(operationHandlerServicesMap.keySet(), pendingOperation);
+		    if (Objects.isNull(operation)) {
+		        LOGGER.error("can't convert operation to specific operation type");
+		        try {
+		            updateOperationStatus(pendingOperation, OperationStatus.FAILED);
+	            } catch (Exception e) {
+	                LOGGER.error("can't update status of not convertable operation", e);
+	            }
+		        
+		        continue;
+		    }
 		    // handle operation
             try {
                 OperationStatus status = handleOperation(operation);
@@ -130,7 +145,7 @@ public class OperationWorker {
     	        // update new status
     	        updateOperationStatus(operation, status);
 			} catch (Exception exception) {
-				LOGGER.error("can't handle operations", exception);
+				LOGGER.error("can't handle operation", exception);
 			}
 		}
 
@@ -153,11 +168,13 @@ public class OperationWorker {
 	/**
 	 * handle the given operation
 	 */
-	private OperationStatus handleOperation(Operation operation) throws AbstractAgentException {
+	@SuppressWarnings("unchecked")
+    private OperationStatus handleOperation(Operation operation) throws AbstractAgentException {
 		LOGGER.debug("handle operation");
 
         // get and check specific operation handler
-        OperationsHandlerService handler = findHandler(operation);
+        @SuppressWarnings("rawtypes")
+        OperationHandlerService handler = findHandler(operation);
         if (Objects.isNull(handler)) {
             LOGGER.error("no handler found for operation {}", operation.getProperties());
             return OperationStatus.FAILED;
@@ -199,18 +216,19 @@ public class OperationWorker {
 	 * @param operation
 	 * @return the service implementation or null
 	 */
-	private OperationsHandlerService findHandler(Operation operation) {
-		LOGGER.info("find operation handler {}", operation.getProperties());
+	@SuppressWarnings("rawtypes")
+    private OperationHandlerService findHandler(Operation operation) {
+	    Class<? extends Operation> operationType = operation.getClass();
+		LOGGER.debug("find operation handler for operation type '{}'", operationType);
 
-		for (Entry<String, OperationsHandlerService> mapEntry : operationHandlerServicesMap.entrySet()) {
-			if (Objects.nonNull(operation.getProperty(mapEntry.getKey()))) {
-				LOGGER.debug("found operation handler {}", mapEntry.getValue().getClass());
-				return mapEntry.getValue();
-			}
+		OperationHandlerService handlerService = operationHandlerServicesMap.get(operation.getClass());
+		if(Objects.isNull(handlerService)) {
+	        LOGGER.info("can't find operation handler for operation type '{}'", operationType);
+		} else {
+            LOGGER.debug("found operation handler '{}' for operation type '{}'", handlerService.getClass(), operationType);
 		}
-
-		LOGGER.debug("did not found operation handler {}", operation.getProperties());
-		return null;
+		
+		return handlerService;
 	}
 
 	/**
@@ -224,15 +242,18 @@ public class OperationWorker {
 	}
 
 	/**
-	 * maps to each supported operation of the given operation handler services the corresponding handler
+	 * maps to each supported operation type of the given operation handler services the corresponding handler
 	 */
-	private Map<String, OperationsHandlerService> toMap(List<OperationsHandlerService> handlerServices) {
-		Map<String, OperationsHandlerService> handlerServicesMap = new ConcurrentHashMap<>();
-		for (OperationsHandlerService handlerService : handlerServices) {
-			for (String operation : handlerService.getSupportedOperations()) {
-				handlerServicesMap.put(operation, handlerService);
-			}
-		}
+	@SuppressWarnings("rawtypes")
+    private Map<Class<? extends Operation>, OperationHandlerService> toMap(List<OperationHandlerService> handlerServices) {
+		Map<Class<? extends Operation>, OperationHandlerService> handlerServicesMap = new ConcurrentHashMap<>();
+		handlerServices.stream().forEach(handlerService -> {
+		    @SuppressWarnings("unchecked")
+            Class<? extends Operation> operationType = handlerService.getSupportedOperationType();
+            if (StringUtils.isNotEmpty(OperationFactory.getOperationName(operationType))) {
+                handlerServicesMap.put(operationType, handlerService);
+            }
+		});
 
 		return handlerServicesMap;
 	}

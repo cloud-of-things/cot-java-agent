@@ -16,7 +16,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
@@ -27,14 +26,15 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 
-import com.telekom.cot.device.agent.common.exc.AgentOperationHandlerException;
+import com.telekom.cot.device.agent.common.exc.OperationHandlerServiceException;
 import com.telekom.cot.device.agent.common.exc.OperationServiceException;
 import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
 import com.telekom.cot.device.agent.common.injection.InjectionUtil;
-import com.telekom.cot.device.agent.operation.handler.OperationsHandlerService;
+import com.telekom.cot.device.agent.operation.handler.OperationHandlerService;
+import com.telekom.cot.device.agent.operation.operations.RestartOperation;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.cot.device.agent.platform.objects.Operation;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
 
 public class OperationWorkerTest {
 
@@ -44,23 +44,26 @@ public class OperationWorkerTest {
 	Logger mockLogger;
 	@Mock
 	PlatformService mockPlatformService;
-	@Mock
-	OperationsHandlerService mockHandlerService;
+	@SuppressWarnings("rawtypes")
+    @Mock
+	OperationHandlerService mockHandlerService;
 
 	private Operation operation;
-	private List<OperationsHandlerService> operationHandlerServices;
+	@SuppressWarnings("rawtypes")
+    private List<OperationHandlerService> operationHandlerServices;
     private boolean requestedNextPendingOperationAlready;
 	
 	/** class to test */
 	private OperationWorker operationWorker;
 
-	@Before
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+    @Before
 	public void setUp() throws Exception {
 		// initialize
 		MockitoAnnotations.initMocks(this);
 
 		// initialize operation
-		operation = new Operation("123");
+		operation = new Operation("123") {};
 		operation.setStatus(OperationStatus.PENDING);
         operation.setProperty(RESTART_OPERATION_NAME, "test");
 
@@ -84,9 +87,8 @@ public class OperationWorkerTest {
 		operationHandlerServices.add(mockHandlerService);
 
 		// behavior of mocked operation handler service
-		when(mockHandlerService.getSupportedOperations()).thenReturn(new String[] { RESTART_OPERATION_NAME });
-		when(mockHandlerService.getSupportedOperations()).thenReturn(new String[] { RESTART_OPERATION_NAME });
-        when(mockHandlerService.execute(operation)).thenReturn(OperationStatus.SUCCESSFUL);
+		when(mockHandlerService.getSupportedOperationType()).thenReturn((Class) RestartOperation.class);
+        when(mockHandlerService.execute(any(RestartOperation.class))).thenReturn(OperationStatus.SUCCESSFUL);
 
 		// initialize class to test and inject mocks
 		operationWorker = new OperationWorker(mockPlatformService, operationHandlerServices, 1);
@@ -123,10 +125,9 @@ public class OperationWorkerTest {
     }
 
     @Test
-    public void testFoundNoHandler() throws Exception {
+    public void testNotConvertableOperation() throws Exception {
         operation.removeProperty(RESTART_OPERATION_NAME);
         operation.setProperty("c8y_NotExistingOperation", "test");
-        Map<String,Object> operationProperties = operation.getProperties();
 
         operationWorker.start();
         assertTrue(operationWorker.isStarted());
@@ -138,7 +139,7 @@ public class OperationWorkerTest {
         assertEquals(expectedStatus, operation.getStatus());
         verify(mockPlatformService, never()).updateOperationStatus(any(String.class), eq(OperationStatus.EXECUTING));
         verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), expectedStatus);
-        verify(mockLogger, times(1)).error("no handler found for operation {}", operationProperties);
+        verify(mockLogger, times(1)).error("can't convert operation to specific operation type");
     }
 
 	@Test
@@ -150,16 +151,16 @@ public class OperationWorkerTest {
 		assertTrue(operationWorker.isStopped());
 		
         OperationStatus expectedStatus = OperationStatus.SUCCESSFUL;
-        assertEquals(expectedStatus, operation.getStatus());
         verify(mockPlatformService, atLeastOnce()).getNextPendingOperation();
         verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), OperationStatus.EXECUTING);
         verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), expectedStatus);
         verify(mockLogger, times(1)).debug("handled operation, status is {}", expectedStatus);
 	}
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testOperationExecutionFailed() throws Exception {
-        doReturn(OperationStatus.FAILED).when(mockHandlerService).execute(operation);
+        doReturn(OperationStatus.FAILED).when(mockHandlerService).execute(any(RestartOperation.class));
 
         operationWorker.start();
         assertTrue(operationWorker.isStarted());
@@ -168,17 +169,17 @@ public class OperationWorkerTest {
         assertTrue(operationWorker.isStopped());
 
         OperationStatus expectedStatus = OperationStatus.FAILED;
-        assertEquals(expectedStatus, operation.getStatus());
         verify(mockPlatformService, atLeastOnce()).getNextPendingOperation();
         verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), OperationStatus.EXECUTING);
         verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), expectedStatus);
         verify(mockLogger, times(1)).debug("handled operation, status is {}", expectedStatus);
     }
 
-	@Test
+	@SuppressWarnings("unchecked")
+    @Test
 	public void testHandlerServiceException() throws Exception {
-		Exception e = new AgentOperationHandlerException("test");
-		doThrow(e).when(mockHandlerService).execute(operation);
+		Exception e = new OperationHandlerServiceException("test");
+		doThrow(e).when(mockHandlerService).execute(any(RestartOperation.class));
 
 		operationWorker.start();
 		assertTrue(operationWorker.isStarted());
@@ -187,7 +188,6 @@ public class OperationWorkerTest {
         assertTrue(operationWorker.isStopped());
 
         OperationStatus expectedStatus = OperationStatus.FAILED;
-        assertEquals(expectedStatus, operation.getStatus());
         verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), OperationStatus.EXECUTING);
         verify(mockPlatformService, times(1)).updateOperationStatus(operation.getId(), expectedStatus);
         verify(mockLogger, times(1)).error("can't execute operation", e);
@@ -210,7 +210,7 @@ public class OperationWorkerTest {
 		operationWorker = new OperationWorker(mockPlatformService, operationHandlerServices, -1);
 
 		operationWorker.start();
-		Thread.sleep(2000);
+        TimeUnit.MILLISECONDS.sleep(2000);
 		operationWorker.stop();
 	}
 }

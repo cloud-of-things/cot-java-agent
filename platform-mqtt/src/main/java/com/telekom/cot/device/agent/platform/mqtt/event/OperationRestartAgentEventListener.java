@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.telekom.cot.device.agent.platform.mqtt.PublishedValues;
-import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
 
 public class OperationRestartAgentEventListener
                 extends PublishedValuesAgentEventListener<Operation, OperationRestartAgentEvent> {
@@ -27,13 +27,13 @@ public class OperationRestartAgentEventListener
      * Create a ManagedObject by the PublishedValues from the PublishCallback.
      */
     public Operation create(PublishedValues publishedValues) {
-        if (isOperation(publishedValues)) {
-            Operation operation = new Operation();
-            operation.setId(publishedValues.getValue("id"));
-            operation.setProperty("c8y_Restart", "");
-            return operation;
+        if (!isOperation(publishedValues)) {
+            return null;
         }
-        return null;
+            
+        Operation operation = new Operation(publishedValues.getValue("id")) {};
+        operation.setProperty("c8y_Restart", "");
+        return operation;
     }
 
     private boolean isOperation(PublishedValues values) {

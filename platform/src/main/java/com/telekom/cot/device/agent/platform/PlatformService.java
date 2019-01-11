@@ -1,5 +1,6 @@
 package com.telekom.cot.device.agent.platform;
 
+
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
@@ -9,9 +10,9 @@ import com.telekom.cot.device.agent.common.configuration.AgentCredentials;
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
 import com.telekom.cot.device.agent.platform.objects.AgentManagedObject;
-import com.telekom.cot.device.agent.platform.objects.Operation;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
 import com.telekom.cot.device.agent.service.AgentService;
 
 /**
@@ -145,10 +146,10 @@ public interface PlatformService extends AgentService {
 	 * Update the supported operations of the agent.
 	 * 
 	 * @param supportedOperations
-	 *            the supported operation names of the agent
+	 *            the names of the supported operations
 	 * @throws AbstractAgentException
 	 */
-	public void updateSupportedOperations(List<String> supportedOperationNames) throws AbstractAgentException;
+	public void updateSupportedOperations(List<String> supportedOperations) throws AbstractAgentException;
 
 	/**
 	 * get the next pending operation to execute
@@ -160,12 +161,23 @@ public interface PlatformService extends AgentService {
 	/**
      * get operations with given status
      * 
-     * @param operationName (optional) name of the operation (fragment)
      * @param status status of the operations to get
      * @return a list of operations with given status (maybe empty)
      * @throws AbstractAgentException if an error occurs
 	 */
-	public List<Operation> getOperations(String operationName, OperationStatus status) throws AbstractAgentException;
+	public default List<Operation> getOperations(OperationStatus status) throws AbstractAgentException {
+	    return getOperations(Operation.class, status);
+	}
+
+    /**
+     * get operations of given type with given status
+     * 
+     * @param operationType type of the operations to get
+     * @param status status of the operations to get
+     * @return a list of operations of given type with given status (maybe empty)
+     * @throws AbstractAgentException if an error occurs
+     */
+    public <T extends Operation> List<T> getOperations(Class<T> operationType, OperationStatus status) throws AbstractAgentException;
 
 	/**
 	 * Update the status of an operation with given id

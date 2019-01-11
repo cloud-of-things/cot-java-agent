@@ -41,7 +41,7 @@ agent:
        username: devicebootstrap
        password: Fhdt1bb1f
        tenant: management
-   sensorService:
+   measurementService:
      sendInterval: 5
    operationService:
      interval: 10

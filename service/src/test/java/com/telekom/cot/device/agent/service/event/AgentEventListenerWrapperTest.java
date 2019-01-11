@@ -49,7 +49,6 @@ public class AgentEventListenerWrapperTest {
         assertThat(handler2.getEventClass(), Matchers.equalTo(Obj2.class));
     }
 
-    @SuppressWarnings("unused")
     @Test
     public void testOnAgentEvent() {
         // listeners

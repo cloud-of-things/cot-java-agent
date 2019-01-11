@@ -1,2 +1,4 @@
 com.telekom.cot.device.agent.operation.OperationServiceImpl
-com.telekom.cot.device.agent.operation.handler.AgentOperationsHandlerService
+com.telekom.cot.device.agent.operation.handler.TestOperationHandler
+com.telekom.cot.device.agent.operation.handler.ConfigurationUpdateOperationHandler
+com.telekom.cot.device.agent.operation.handler.SoftwareUpdateOperationHandler

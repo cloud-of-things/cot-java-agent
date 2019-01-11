@@ -1,3 +1,3 @@
-com.telekom.cot.device.agent.raspbian.operation.RaspbianOperationsHandler
+com.telekom.cot.device.agent.raspbian.operation.RestartOperationHandler
 com.telekom.cot.device.agent.raspbian.sensor.CpuTemperatureSensor
 com.telekom.cot.device.agent.raspbian.system.RaspbianSystemService

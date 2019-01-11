@@ -20,18 +20,18 @@
 		</dependency>
 		<dependency>
 			<groupId>com.telekom.cot</groupId>
-			<artifactId>device-agent-service</artifactId>
+			<artifactId>device-agent-platform</artifactId>
 			<version>${cot.agent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.telekom.cot</groupId>
-			<artifactId>device-agent-platform</artifactId>
+			<artifactId>device-agent-device</artifactId>
 			<version>${cot.agent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.telekom.m2m.cot</groupId>
 			<artifactId>java-rest-client</artifactId>
-			<version>${cot.sdk.version}</version>
+			<version>${cot.rest.sdk.version}</version>
 		</dependency>
 	</dependencies>
 

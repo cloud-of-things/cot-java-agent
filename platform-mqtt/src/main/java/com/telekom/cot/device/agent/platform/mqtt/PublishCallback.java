@@ -1,23 +1,5 @@
 package com.telekom.cot.device.agent.platform.mqtt;
 
-import static com.telekom.cot.device.agent.platform.mqtt.event.PublishedValuesAgentEvent.createEvent;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.map.HashedMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
 import com.telekom.cot.device.agent.platform.mqtt.event.LifecycleResponseAgentEvent;
@@ -25,9 +7,21 @@ import com.telekom.cot.device.agent.platform.mqtt.event.LifecycleResponseAgentEv
 import com.telekom.cot.device.agent.platform.mqtt.event.PublishedValuesAgentEvent;
 import com.telekom.cot.device.agent.platform.mqtt.event.PublishedValuesAgentEventListener;
 import com.telekom.cot.device.agent.service.event.AgentContext;
+import com.telekom.cot.device.agent.service.event.AgentContextImpl.Execution;
 import com.telekom.cot.device.agent.service.event.AgentEvent;
 import com.telekom.cot.device.agent.service.event.AgentEventPublisher;
-import com.telekom.cot.device.agent.service.event.AgentContextImpl.Execution;
+import org.apache.commons.collections4.map.HashedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static com.telekom.cot.device.agent.platform.mqtt.event.PublishedValuesAgentEvent.createEvent;
 
 /**
  * The callback of the MQTT Connector publish.
@@ -145,8 +139,7 @@ public class PublishCallback implements Consumer<String> {
         String[] lines = readValidValues(response);
         if (lines.length == 0) {
            LOGGER.debug("could not find valid responses");
-        }
-        else if (!isValidResponse(lines[0])) {
+        } else if (!isValidResponse(lines[0])) {
             LOGGER.debug("valid responses {}", Arrays.asList(lines));
             // read values from response
             Map<TemplateId, List<PublishedValues>> allValues = toMappedPublishedValues(lines);
@@ -216,7 +209,7 @@ public class PublishCallback implements Consumer<String> {
                 }
             }
         }
-        return allValues.entrySet().stream().map((e) -> e.getValue()).flatMap(l -> l.stream())
+        return allValues.entrySet().stream().map(e -> e.getValue()).flatMap(l -> l.stream())
                         .collect(Collectors.toList());
     }
 
@@ -251,8 +244,7 @@ public class PublishCallback implements Consumer<String> {
             PublishedValues publishedValues = reader.read(templateContent);
             if (publishedValues.isValid()) {
                 LOGGER.debug("VALID response={} publishedValues={}", templateContent, publishedValues);
-            }
-            else {
+            } else {
                 LOGGER.warn("INVALID response={} publishedValues={}", templateContent, publishedValues);
             }
             if (!result.containsKey(publishedValues.getTemplateId())) {

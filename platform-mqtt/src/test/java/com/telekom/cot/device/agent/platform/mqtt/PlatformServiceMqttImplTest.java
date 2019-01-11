@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -21,12 +22,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import com.telekom.cot.device.agent.platform.mqtt.PlatformServiceMqttConfiguration.MqttConfiguration;
-import com.telekom.cot.device.agent.service.event.AgentEvent;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -46,6 +44,7 @@ import com.telekom.cot.device.agent.common.configuration.AgentCredentialsManager
 import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
 import com.telekom.cot.device.agent.common.injection.InjectionUtil;
+import com.telekom.cot.device.agent.platform.mqtt.PlatformServiceMqttConfiguration.MqttConfiguration;
 import com.telekom.cot.device.agent.platform.mqtt.event.AlarmAgentEventListener;
 import com.telekom.cot.device.agent.platform.mqtt.event.ManagedObjectAgentEventListener;
 import com.telekom.cot.device.agent.platform.mqtt.event.StartupAgentEventListener;
@@ -58,9 +57,9 @@ import com.telekom.cot.device.agent.platform.objects.AgentManagedObject;
 import com.telekom.cot.device.agent.platform.objects.AgentMobile;
 import com.telekom.cot.device.agent.platform.objects.AgentSoftwareList;
 import com.telekom.cot.device.agent.platform.objects.ManagedObject;
-import com.telekom.cot.device.agent.platform.objects.Operation;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
 import com.telekom.cot.device.agent.service.event.AgentContext;
 import com.telekom.cot.device.agent.service.event.AgentEvent;
 import com.telekom.cot.device.agent.service.event.AgentEventPublisher;
@@ -690,8 +689,7 @@ public class PlatformServiceMqttImplTest {
 	 */
 	@Test
 	public void testUpdateSupportedOperations() throws AbstractAgentException, InterruptedException {
-		List<String> supportedOperationNames = new ArrayList<>();
-		supportedOperationNames.add("c8y_Test");
+		List<String> supportedOperations = Arrays.asList("c8y_Test");
 
 		// configure agentCredentials
 		agentCredentials.setBootstrappingMode(true);
@@ -706,12 +704,12 @@ public class PlatformServiceMqttImplTest {
 		AgentManagedObject agentManagedObject = new AgentManagedObject();
 		// get the expected template
 		String templateSupportedOperations = SmartRestUtil.getPayloadUpdateSupportedOperations(X_ID,
-				agentManagedObject.getId(), supportedOperationNames);
+				agentManagedObject.getId(), supportedOperations);
 
 		// behavior
 		platformServiceMqtt.start();
 		platformServiceMqtt.updateAgentManagedObject(agentManagedObject);
-		platformServiceMqtt.updateSupportedOperations(supportedOperationNames);
+		platformServiceMqtt.updateSupportedOperations(supportedOperations);
 
 		// assert
 		Assert.assertThat(platformServiceMqtt.isStarted(), Matchers.equalTo(true));
@@ -900,7 +898,7 @@ public class PlatformServiceMqttImplTest {
 	 */
 	@Test
 	public void testGetNextPendingOperation_SUCCESS() throws AbstractAgentException {
-		when(mockConcurrentLinkedQueue.poll()).thenReturn(new Operation("1"));
+		when(mockConcurrentLinkedQueue.poll()).thenReturn(new Operation("1") {});
 
 		InjectionUtil.inject(platformServiceMqtt, mockConcurrentLinkedQueue);
 

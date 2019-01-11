@@ -22,10 +22,10 @@ import com.telekom.cot.device.agent.common.exc.ConfigurationNotFoundException;
 import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.event.EventService;
 import com.telekom.cot.device.agent.inventory.InventoryService;
+import com.telekom.cot.device.agent.measurement.MeasurementService;
 import com.telekom.cot.device.agent.operation.OperationService;
 import com.telekom.cot.device.agent.operation.OperationServiceConfiguration;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.service.AgentServiceProvider;
 import com.telekom.cot.device.agent.service.AgentServiceShutdownHelper;
 import com.telekom.cot.device.agent.system.SystemService;
@@ -99,11 +99,11 @@ public class AppShutdownTest {
     }
     
     /**
-     * test run, shutdown SensorService throws exception
+     * test run, shutdown MeasurementService throws exception
      */
     @Test
-    public void testRunShutdownSensorServiceException() throws Exception {
-        doThrow(exception).when(mockShutdownHelper).shutdownService(SensorService.class, SHUTDOWN_TIMEOUT, true);
+    public void testRunShutdownMeasurementServiceException() throws Exception {
+        doThrow(exception).when(mockShutdownHelper).shutdownService(MeasurementService.class, SHUTDOWN_TIMEOUT, true);
         appShutdown.run();
         
         verify(mockLogger).error("can't shut down sensor service and all sensor device services", exception);

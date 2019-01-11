@@ -20,9 +20,9 @@ import com.telekom.cot.device.agent.common.injection.InjectionUtil;
 import com.telekom.cot.device.agent.credentials.DeviceCredentialsService;
 import com.telekom.cot.device.agent.event.EventService;
 import com.telekom.cot.device.agent.inventory.InventoryService;
+import com.telekom.cot.device.agent.measurement.MeasurementService;
 import com.telekom.cot.device.agent.operation.OperationService;
 import com.telekom.cot.device.agent.platform.PlatformService;
-import com.telekom.cot.device.agent.sensor.SensorService;
 import com.telekom.cot.device.agent.service.AgentServiceManager;
 import com.telekom.cot.device.agent.system.SystemService;
 
@@ -48,7 +48,7 @@ public class AppBootstrapFactoryTest {
     @Mock
     private OperationService mockOperationService;
     @Mock
-    private SensorService mockSensorService;
+    private MeasurementService mockMeasurementService;
     @Mock
     private EventService mockEventService;
     @Mock
@@ -81,7 +81,7 @@ public class AppBootstrapFactoryTest {
         when(mockAgentServiceManager.getService(PlatformService.class)).thenReturn(mockPlatformService);
         when(mockAgentServiceManager.getService(InventoryService.class)).thenReturn(mockInventoryService);
         when(mockAgentServiceManager.getService(OperationService.class)).thenReturn(mockOperationService);
-        when(mockAgentServiceManager.getService(SensorService.class)).thenReturn(mockSensorService);
+        when(mockAgentServiceManager.getService(MeasurementService.class)).thenReturn(mockMeasurementService);
         when(mockAgentServiceManager.getService(EventService.class)).thenReturn(mockEventService);
         when(mockAgentServiceManager.getService(DeviceCredentialsService.class)).thenReturn(mockCredentialsService);
     }

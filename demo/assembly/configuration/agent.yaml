@@ -87,8 +87,8 @@ agent:
         password: Fhdt1bb1f
         tenant: management
 
-    # sensor service configuration
-    sensorService:
+    # measurement service configuration
+    measurementService: 
       sendInterval: 5 # interval in seconds at which measurements are sent to the CoT
     
     # operation service configuration
@@ -99,6 +99,9 @@ agent:
       shutdownTimeout: 5000
       handlersShutdownTimeout: 500 
 
+    deviceService:
+      handlersShutdownTimeout: 10
+      
   operations:
     testOperation:
       # in seconds

@@ -81,6 +81,7 @@ mqttConfiguration:
   # publish and subscribe timeout in seconds
   # the minimum is 1 second
   timeout: 10 # by default
+  delaySendMeasurement: 100 # milliseconds, by default
 ```
 * `<hostName>` is the https address of your CoT instance. "https" and the tenant will be automatically added by the agent to the hostname (`url = "https://" + tenant + "." + hostname`).
 * `<valueTemplate>` is the template to generate the external id value. Following values are possible:
@@ -132,7 +133,13 @@ Note: The bootstrap credentials are the default values to register a new device 
 * `<interval>` is the delay (in seconds) between each attempt to get the device credentials from the CoT.
 * `bootstrapCredentials`: These bootstrap user properties are used when the agent is started and there is no device-credentials.yaml file. In this case the agent uses these properties to *register* the device in the CoT.
 
-### agent.services.sensorService
+### agent.services.deviceService
+```
+handlersShutdownTimeout: 10
+```
+* `<handlerShutdownTimeout>` is the shutdown timeout in milliseconds for stopping device handlers.
+
+### agent.services.measurementService
 ```
 sendInterval: 5
 ```

@@ -1,10 +1,12 @@
 package com.telekom.cot.device.agent.service.event;
 
-import java.util.Objects;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static com.telekom.cot.device.agent.service.event.AgentEventUtil.*;
+
+import java.util.Objects;
+
+import static com.telekom.cot.device.agent.service.event.AgentEventUtil.getEventType;
+import static com.telekom.cot.device.agent.service.event.AgentEventUtil.invoke;
 
 /**
  * The handler of a listener.
@@ -66,6 +68,11 @@ public class AgentEventListenerWrapper implements AgentEventListener<AgentEvent>
         } else {
             return false;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     /**

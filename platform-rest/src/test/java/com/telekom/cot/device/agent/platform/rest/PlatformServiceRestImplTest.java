@@ -25,9 +25,9 @@ import com.telekom.cot.device.agent.common.exc.AbstractAgentException;
 import com.telekom.cot.device.agent.common.exc.AgentCredentialsNotFoundException;
 import com.telekom.cot.device.agent.common.exc.PlatformServiceException;
 import com.telekom.cot.device.agent.platform.objects.AgentManagedObject;
-import com.telekom.cot.device.agent.platform.objects.OperationStatus;
 import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
-import com.telekom.cot.device.agent.platform.objects.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation;
+import com.telekom.cot.device.agent.platform.objects.operation.Operation.OperationStatus;
 import com.telekom.m2m.cot.restsdk.identity.ExternalId;
 import com.telekom.m2m.cot.restsdk.inventory.Binary;
 import com.telekom.m2m.cot.restsdk.inventory.ManagedObject;
@@ -50,7 +50,7 @@ public class PlatformServiceRestImplTest extends PlatformServiceRestImplTestBase
 		PowerMockito.mockStatic(CoTPlatformBuilder.class);
 		PowerMockito.when(CoTPlatformBuilder.create()).thenReturn(mockBuilder);
 		
-		operation = new Operation();
+		operation = new Operation() {};
 		operation.setId("1");
 	}
 
@@ -524,30 +524,30 @@ public class PlatformServiceRestImplTest extends PlatformServiceRestImplTestBase
 	public void testGetOperations() throws AbstractAgentException {
 		when(mockOperation.getStatus()).thenReturn(com.telekom.m2m.cot.restsdk.devicecontrol.OperationStatus.ACCEPTED);
 		
-		platformServiceRestImpl.getOperations(null, OperationStatus.ACCEPTED);
+		platformServiceRestImpl.getOperations(OperationStatus.ACCEPTED);
 		
 		verify(mockDeviceControlApi).getOperationCollection(any(FilterBuilder.class), any(Integer.class));
 	}
 
 	@Test(expected = PlatformServiceException.class)
-	public void testGetOperationCollectionNullStatus() throws AbstractAgentException {
-		platformServiceRestImpl.getOperations(null, null);
+	public void testGetOperationsNullStatus() throws AbstractAgentException {
+		platformServiceRestImpl.getOperations(null);
 	}
 
 	@Test(expected = PlatformServiceException.class)
-	public void testGetOperationCollectionExternalIdNull() throws AbstractAgentException {
+	public void testGetOperationsExternalIdNull() throws AbstractAgentException {
 		reset(mockIdentityApi);
 		when(mockIdentityApi.getExternalId(externalId)).thenReturn(null);
 
-		platformServiceRestImpl.getOperations(null, OperationStatus.ACCEPTED);
+		platformServiceRestImpl.getOperations(OperationStatus.ACCEPTED);
 	}
 
 	@Test(expected = PlatformServiceException.class)
-	public void testGetOperationCollectionGetExternalIdException() throws AbstractAgentException {
+	public void testGetOperationsGetExternalIdException() throws AbstractAgentException {
 		reset(mockIdentityApi);
 		doThrow(new CotSdkException("test")).when(mockIdentityApi).getExternalId(externalId);
 
-		platformServiceRestImpl.getOperations(null, OperationStatus.ACCEPTED);
+		platformServiceRestImpl.getOperations(OperationStatus.ACCEPTED);
 	}
 
 	@Test(expected = PlatformServiceException.class)
@@ -555,7 +555,7 @@ public class PlatformServiceRestImplTest extends PlatformServiceRestImplTestBase
 		reset(mockCoTPlatform);
 		when(mockCoTPlatform.getDeviceControlApi()).thenReturn(null);
 
-		platformServiceRestImpl.getOperations(null, OperationStatus.ACCEPTED);
+		platformServiceRestImpl.getOperations(OperationStatus.ACCEPTED);
 	}
 
 	@Test(expected = PlatformServiceException.class)
@@ -564,7 +564,7 @@ public class PlatformServiceRestImplTest extends PlatformServiceRestImplTestBase
 		doThrow(new CotSdkException("test")).when(mockDeviceControlApi).getOperationCollection(any(FilterBuilder.class),
 				any(Integer.class));
 
-		platformServiceRestImpl.getOperations(null, OperationStatus.ACCEPTED);
+		platformServiceRestImpl.getOperations(OperationStatus.ACCEPTED);
 	}
 
 	/*

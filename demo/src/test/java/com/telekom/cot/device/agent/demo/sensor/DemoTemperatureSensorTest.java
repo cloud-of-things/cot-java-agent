@@ -18,9 +18,10 @@ import com.telekom.cot.device.agent.alarm.AlarmService;
 import com.telekom.cot.device.agent.common.AlarmSeverity;
 import com.telekom.cot.device.agent.common.exc.SensorDeviceServiceException;
 import com.telekom.cot.device.agent.common.injection.InjectionUtil;
+import com.telekom.cot.device.agent.device.DeviceService;
+import com.telekom.cot.device.agent.device.sensordevice.SensorConfiguration;
 import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
-import com.telekom.cot.device.agent.sensor.SensorService;
-import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
+import com.telekom.cot.device.agent.service.channel.QueueChannel;
 
 public class DemoTemperatureSensorTest {
 
@@ -36,7 +37,9 @@ public class DemoTemperatureSensorTest {
 	@Mock
 	private AlarmService mockAlarmService;
 	@Mock
-	private SensorService mockSensorService;
+	private DeviceService mockDeviceService;
+	@Mock
+	private QueueChannel<SensorMeasurement> mockQueueChannel;
 	@Mock
 	private TemperatureFileReader mockTemperatureFileReader;
 
@@ -60,13 +63,16 @@ public class DemoTemperatureSensorTest {
 		// TemperatureFileReader
 		InjectionUtil.inject(demoTemperatureSensor, configuration);
 		InjectionUtil.inject(demoTemperatureSensor, mockAlarmService);
-        InjectionUtil.inject(demoTemperatureSensor, mockSensorService);
+        InjectionUtil.inject(demoTemperatureSensor, mockDeviceService);
 		InjectionUtil.inject(demoTemperatureSensor, mockTemperatureFileReader);
 
 		// mock TemperatureFileReader
 		when(mockTemperatureFileReader.readFile(TEMPERATURE_VALUES_FILE)).thenReturn(true);
 		when(mockTemperatureFileReader.getTemperatureMeasurement()).thenReturn(new Float(21.7f), new Float(23.4f),
 				new Float(22.8f), new Float(24.9f), new Float(28.5f), new Float(21.7f), new Float(23.4f));
+		
+		// mock mockDeviceService
+		when(mockDeviceService.getQueueChannel()).thenReturn(mockQueueChannel);
 	}
 
 	/**
@@ -91,7 +97,7 @@ public class DemoTemperatureSensorTest {
 	/**
 	 * test method recordReading (run method for the worker thread),
 	 * TemperatureFileReader.getTemperatureMeasurement returns null
-	 * so addMeasurement() and createAlarm are never called 
+	 * so getQueueChannel().add() and createAlarm() are never called 
 	 */
 	@Test
 	public void testStartNullMeasurement() throws Exception {
@@ -103,7 +109,7 @@ public class DemoTemperatureSensorTest {
 		TimeUnit.MILLISECONDS.sleep(500);
 		demoTemperatureSensor.stop();
 
-		verify(mockSensorService, never()).addMeasurement(any(SensorMeasurement.class));
+		verify(mockDeviceService, never()).getQueueChannel();
 		verify(mockAlarmService, never()).createAlarm(any(), any(), any(), any());
 	}
 
@@ -116,11 +122,11 @@ public class DemoTemperatureSensorTest {
         TimeUnit.MILLISECONDS.sleep(5500);
 		demoTemperatureSensor.stop();
 
-		// assert that 6 measurements have been pushed to SensorService
+		// assert that 6 measurements have been pushed to MeasurementService
 		ArgumentCaptor<SensorMeasurement> measurementCaptor = ArgumentCaptor.forClass(SensorMeasurement.class);
-		verify(mockSensorService, times(6)).addMeasurement(measurementCaptor.capture());
+		verify(mockQueueChannel, times(6)).add(measurementCaptor.capture());
 
-		// verify the measurement values that have been pushed to SensorService
+		// verify the measurement values that have been pushed to MeasurementService
 		List<SensorMeasurement> capturedMeasurements = measurementCaptor.getAllValues();
 		assertEquals(21.7f, capturedMeasurements.get(0).getValue(), 0.0001f);
 		assertEquals(23.4f, capturedMeasurements.get(1).getValue(), 0.0001f);

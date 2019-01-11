@@ -23,9 +23,10 @@ import com.telekom.cot.device.agent.alarm.AlarmService;
 import com.telekom.cot.device.agent.common.AlarmSeverity;
 import com.telekom.cot.device.agent.common.exc.SensorDeviceServiceException;
 import com.telekom.cot.device.agent.common.injection.InjectionUtil;
+import com.telekom.cot.device.agent.device.DeviceService;
+import com.telekom.cot.device.agent.device.sensordevice.SensorConfiguration;
 import com.telekom.cot.device.agent.platform.objects.SensorMeasurement;
-import com.telekom.cot.device.agent.sensor.SensorService;
-import com.telekom.cot.device.agent.sensor.configuration.SensorConfiguration;
+import com.telekom.cot.device.agent.service.channel.QueueChannel;
 
 public class CpuTemperatureSensorTest {
 
@@ -40,7 +41,9 @@ public class CpuTemperatureSensorTest {
 	@Mock
 	private AlarmService mockAlarmService;
 	@Mock
-	private SensorService mockSensorService;
+	private DeviceService mockDeviceService;
+	@Mock
+	private QueueChannel<SensorMeasurement> mockQueueChannel;
 	@Mock
 	private Runtime mockRuntime;
 	@Mock
@@ -67,44 +70,49 @@ public class CpuTemperatureSensorTest {
 		// (overwritten by start())
 		InjectionUtil.inject(cpuTemperatureSensor, configuration);
 		InjectionUtil.inject(cpuTemperatureSensor, mockAlarmService);
-        InjectionUtil.inject(cpuTemperatureSensor, mockSensorService);
+		InjectionUtil.inject(cpuTemperatureSensor, mockDeviceService);
 		InjectionUtil.inject(cpuTemperatureSensor, mockRuntime);
 
-		// mock runtime, process and input stream
+		// mock runtime, process, input stream and mockDeviceService
 		when(mockRuntime.exec(CpuTemperatureSensor.READ_CPU_TEMPERATURE_COMMAND)).thenReturn(mockProcess);
 		when(mockProcess.getInputStream()).thenReturn(mockInputStream);
 		when(mockInputStream.read()).thenReturn((int) '2', (int) '1', (int) '.', (int) '7', -1, (int) '2', (int) '3',
 				(int) '.', (int) '4', -1, (int) '2', (int) '2', (int) '.', (int) '8', -1, (int) '2', (int) '4',
 				(int) '.', (int) '9', -1, (int) '2', (int) '8', (int) '.', (int) '5', -1, (int) '2', (int) '0',
 				(int) '.', (int) '3', -1);
+		when(mockDeviceService.getQueueChannel()).thenReturn(mockQueueChannel);
 	}
 
 	/**
 	 * test method start, no AlarmService given
 	 */
-	@Test(expected=SensorDeviceServiceException.class)
+	@Test(expected = SensorDeviceServiceException.class)
 	public void testStartNoAlarmService() throws Exception {
-        InjectionUtil.inject(cpuTemperatureSensor, "alarmService", null);
+		InjectionUtil.inject(cpuTemperatureSensor, "alarmService", null);
 		cpuTemperatureSensor.start();
 	}
 
-    /**
-     * test method start, no SensorService given
-     */
-    @Test(expected=SensorDeviceServiceException.class)
-    public void testStartNoSensorService() throws Exception {
-        InjectionUtil.inject(cpuTemperatureSensor, "sensorService", null);
-        cpuTemperatureSensor.start();
-    }
+	/**
+	 * test method start, no SensorService given
+	 */
+	@Test(expected = SensorDeviceServiceException.class)
+	public void testStartNoSensorService() throws Exception {
+		try {
+			InjectionUtil.inject(cpuTemperatureSensor, "deviceService", null);
+			cpuTemperatureSensor.start();
+		} catch (Exception e) {
+			cpuTemperatureSensor.start();
+		}
+	}
 
-    /**
-     * test method start
-     */
-    @Test
-    public void testStart() throws Exception {
-        cpuTemperatureSensor.start();
-        cpuTemperatureSensor.stop();
-    }
+	/**
+	 * test method start
+	 */
+	@Test
+	public void testStart() throws Exception {
+		cpuTemperatureSensor.start();
+		cpuTemperatureSensor.stop();
+	}
 
 	/**
 	 * test method stop
@@ -198,7 +206,6 @@ public class CpuTemperatureSensorTest {
 		assertNotNull(measurement);
 		assertNotNull(measurement.getTime());
 		assertEquals(21.7f, measurement.getValue(), 0.00001f);
-		assertEquals("°C", measurement.getUnit());
 	}
 
 	/**
@@ -211,11 +218,11 @@ public class CpuTemperatureSensorTest {
 		TimeUnit.MILLISECONDS.sleep(5500);
 		cpuTemperatureSensor.stop();
 
-		// assert that 6 measurements have been pushed to SensorService
+		// assert that 6 measurements have been pushed to MeasurementService
 		ArgumentCaptor<SensorMeasurement> measurementCaptor = ArgumentCaptor.forClass(SensorMeasurement.class);
-		verify(mockSensorService, times(6)).addMeasurement(measurementCaptor.capture());
+		verify(mockQueueChannel, times(6)).add(measurementCaptor.capture());
 
-		// verify the measurement values that have been pushed to SensorService
+		// verify the measurement values that have been pushed to MeasurementService
 		List<SensorMeasurement> capturedMeasurements = measurementCaptor.getAllValues();
 		assertEquals(21.7f, capturedMeasurements.get(0).getValue(), 0.0001f);
 		assertEquals(23.4f, capturedMeasurements.get(1).getValue(), 0.0001f);
